@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     // Construir consulta dinámica
     let whereClause = '';
-    const binds: any[] = [];
+  const binds: string[] = [];
 
     if (search) {
       whereClause += ` AND (l.titulo LIKE '%' || :${binds.length + 1} || '%' OR l.autor LIKE '%' || :${binds.length + 1} || '%')`;

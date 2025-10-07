@@ -207,16 +207,16 @@ export async function PUT(
       message: 'Número de copias actualizado correctamente',
     });
 
-  } catch (error: any) {
-    console.error('❌ Error actualizando libro:', error);
+  } catch (error: unknown) {
+    console.error('❌ Error actualizando libro:', (error as { message: string }).message);
     return NextResponse.json(
       {
         success: false,
         message:
-          error.message?.includes('ORA-01407')
+          (error as { message: string }).message?.includes('ORA-01407')
             ? 'No se puede dejar campos requeridos vacíos'
             : 'Error interno del servidor',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        error: process.env.NODE_ENV === 'development' ? (error as { message: string }).message : undefined,
       },
       { status: 500 }
     );

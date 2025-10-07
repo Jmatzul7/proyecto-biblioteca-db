@@ -170,16 +170,16 @@ console.log('🔍 Verificando disponibilidad.69..');
         fecha_devolucion_estimada: fechaDevolucionEstimada.toISOString().split('T')[0],
       },
     });
-  } catch (error: any) {
-    console.error('❌ Error creando préstamo:', error);
+  } catch (error: unknown) {
+    console.error('❌ Error creando préstamo:', (error as { message: string }).message);
 
     let errorMessage = 'Error interno del servidor';
-    if (error.message?.includes('ORA-02291')) errorMessage = 'Usuario o libro no válido';
-    if (error.message?.includes('ORA-00001')) errorMessage = 'Error de duplicación en préstamos';
-    if (error.message?.includes('NJS-098')) errorMessage = 'Error en los parámetros de la consulta';
+    if ((error as { message: string }).message?.includes('ORA-02291')) errorMessage = 'Usuario o libro no válido';
+    if ((error as { message: string }).message?.includes('ORA-00001')) errorMessage = 'Error de duplicación en préstamos';
+    if ((error as { message: string }).message?.includes('NJS-098')) errorMessage = 'Error en los parámetros de la consulta';
 
     return NextResponse.json(
-      { success: false, message: errorMessage, error: error.message },
+      { success: false, message: errorMessage, error: (error as { message: string }).message },
       { status: 500 }
     );
   }
