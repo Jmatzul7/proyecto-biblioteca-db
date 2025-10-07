@@ -129,7 +129,7 @@ export default function RegisterUserForm({ onUserRegistered, onCancel }: Registe
         setSuccess(result.message);
         resetForm();
         await new Promise(resolve => setTimeout(resolve, 3000));
-        router.push('/dashboard');
+        router.push('/home/usuarios');
         
         // Notificar al componente padre
         if (onUserRegistered) {

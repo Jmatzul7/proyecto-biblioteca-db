@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import runQuery from '../../../lib/db/oracle'; // Asegúrate que la ruta sea correcta
+import runQuery from '@/lib/db/oracle'; // Asegúrate que la ruta sea correcta
 
 export async function GET() {
     try {

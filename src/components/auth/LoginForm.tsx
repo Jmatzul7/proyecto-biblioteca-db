@@ -125,26 +125,6 @@ export default function LoginForm() {
           required
         />
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 text-cyan-400 focus:ring-cyan-400 border-white/20 rounded bg-white/5"
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-blue-200">
-              Recordar sesión
-            </label>
-          </div>
-
-          <div className="text-sm">
-            <a href="/forgot-password" className="text-cyan-300 hover:text-cyan-200 transition-colors duration-300">
-              ¿Olvidaste tu contraseña?
-            </a>
-          </div>
-        </div>
-
         <div className="space-y-3">
           <Button
             type="submit"

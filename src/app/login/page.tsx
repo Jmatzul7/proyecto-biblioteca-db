@@ -1,4 +1,3 @@
-// app/login/page.tsx
 'use client';
 
 import { useEffect } from 'react';
@@ -11,13 +10,12 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Si el usuario ya está autenticado, redirigir a la página de libros
+
     if (!loading && user) {
       router.push('/home/libros');
     }
   }, [user, loading, router]);
 
-  // Mostrar loading mientras verifica la autenticación
   if (loading) {
     return (
       <section className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -36,12 +34,10 @@ export default function LoginPage() {
     );
   }
 
-  // Si ya está autenticado, no mostrar el formulario (será redirigido)
   if (user) {
     return null;
   }
 
-  // Mostrar el formulario de login solo si no está autenticado
   return (
     <section className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Elementos decorativos de fondo */}
