@@ -41,10 +41,10 @@ interface PrestamoActivo {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const libroId = Number(params.id);
+    const libroId = Number(context.params.id);
 
     if (!libroId || isNaN(libroId)) {
       return NextResponse.json(
