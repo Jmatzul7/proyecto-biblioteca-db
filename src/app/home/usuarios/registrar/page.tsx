@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import RegisterUserForm from '@/components/usuarios/RegisterUserForm';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute';
+import Link from 'next/link';
 
 export default function RegistrarUsuarioPage() {
   const [showSuccess, setShowSuccess] = useState(false);
@@ -27,7 +28,7 @@ export default function RegistrarUsuarioPage() {
             </p>
           </div>
           
-          <a
+          <Link
             href="/usuarios"
             className="mt-4 lg:mt-0 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center border border-white/20"
           >
@@ -35,7 +36,7 @@ export default function RegistrarUsuarioPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Volver a Usuarios
-          </a>
+          </Link>
         </div>
 
         {/* Estadísticas rápidas */}

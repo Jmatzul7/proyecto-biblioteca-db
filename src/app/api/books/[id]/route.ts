@@ -1,6 +1,5 @@
-// app/api/libros/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import runQuery from '../../../../lib/db/oracle';
+import runQuery from '@/lib/db/oracle';
 
 export async function GET(
   request: NextRequest,

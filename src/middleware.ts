@@ -1,4 +1,3 @@
-// middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -38,6 +37,7 @@ export async function middleware(request: NextRequest) {
         }
       }
     } catch (error) {
+      console.log(error)
       return NextResponse.redirect(new URL('/login', request.url));
     }
   }

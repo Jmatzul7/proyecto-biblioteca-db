@@ -1,7 +1,5 @@
-// src/lib/db/oracle.ts
 import oracledb from 'oracledb';
 
-// Para Oracle 11g, necesitamos configuraciones específicas
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 oracledb.autoCommit = true;
 
@@ -11,7 +9,7 @@ const oracleConfig = {
   password: process.env.DB_PASSWORD,
   connectString: process.env.DB_CONNECTION_STRING,
   poolMin: 1,
-  poolMax: 3,  // Reducir para Oracle 11g
+  poolMax: 3,  
   poolTimeout: 30
 };
 
@@ -19,7 +17,6 @@ let pool: oracledb.Pool;
 
 async function initializePool() {
   try {
-    console.log('🔗 Conectando a Oracle 11g en CloudClusters...');
     
     pool = await oracledb.createPool(oracleConfig);
     console.log('✅ Pool creado para Oracle 11g');
@@ -55,7 +52,6 @@ async function initializePoolLegacy() {
   }
 }
 
-// Resto del código igual...
 async function runQuery(sql: string, binds: any = []) {
   if (!pool) await initializePool();
 

@@ -6,6 +6,7 @@ import LoginHeader from './LoginHeader';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import ErrorAlert from '@/components/ui/ErrorAlert';
+import Link from 'next/link';
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -147,7 +148,7 @@ export default function LoginForm() {
       </form>
 
       <div className="mt-6 text-center">
-        <a
+        <Link
           href="/"
           className="text-cyan-300 hover:text-cyan-200 text-sm transition-colors duration-300 inline-flex items-center"
         >
@@ -155,7 +156,7 @@ export default function LoginForm() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Volver al inicio
-        </a>
+        </Link>
       </div>
     </div>
   );
