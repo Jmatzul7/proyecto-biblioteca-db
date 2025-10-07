@@ -137,12 +137,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest) {
   try {
-    const libroId = Number(params.id);
+    // Extraer el id de la URL
+    const urlParts = request.url.split('/');
+    const id = urlParts[urlParts.length - 1];
+    const libroId = Number(id);
     const body = await request.json();
     const { num_copias } = body; // ✅ Solo queremos actualizar este campo
 
