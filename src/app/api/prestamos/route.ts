@@ -30,11 +30,24 @@ export async function GET(request: NextRequest) {
 
     query += ` ORDER BY p.fecha_prestamo DESC`;
 
-    const prestamos = await runQuery(query, params);
+    interface Prestamo {
+      PRESTAMO_ID: number;
+      USUARIO_NOMBRE: string;
+      USUARIO_ID: number;
+      LIBRO_TITULO: string;
+      FECHA_PRESTAMO: string;
+      FECHA_DEVOLUCION: string;
+      ESTADO: string;
+      LIBRO_ID: number;
+    }
+    const prestamosResult = await runQuery(query, params);
+    const prestamosTipados: Prestamo[] = Array.isArray(prestamosResult)
+      ? prestamosResult.map((p: unknown) => p as Prestamo)
+      : [];
 
     return NextResponse.json({
       success: true,
-      data: prestamos
+      data: prestamosTipados
     });
 
   } catch (error) {
@@ -92,7 +105,12 @@ export async function POST(request: NextRequest) {
       );
     }
 console.log('🔍 Verificando disponibilidad.69..');
-    const disponibilidad = disponibilidadResult[0] as any;
+    interface Disponibilidad {
+      COPIAS_TOTALES: number;
+      PRESTAMOS_ACTIVOS: number;
+      COPIAS_DISPONIBLES: number;
+    }
+    const disponibilidad = disponibilidadResult[0] as Disponibilidad;
     const copiasDisponibles = disponibilidad.COPIAS_DISPONIBLES ?? 0;
 
     console.log('📚 Disponibilidad:', disponibilidad);
@@ -114,7 +132,10 @@ console.log('🔍 Verificando disponibilidad.69..');
         { status: 500 }
       );
     }
-        const nextId = (idResult[0] as any)?.NEXT_ID;
+    interface NextIdResult {
+      NEXT_ID: number;
+    }
+    const nextId = (idResult[0] as NextIdResult)?.NEXT_ID;
 
     console.log('🆔 Próximo ID:', nextId);
 

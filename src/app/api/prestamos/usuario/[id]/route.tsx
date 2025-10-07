@@ -29,20 +29,35 @@ export async function GET(
 
     const result = await runQuery(sql, [usuarioId]);
 
+    interface UsuarioPrestamo {
+      USUARIO_ID: number;
+      NOMBRE_USUARIO: string;
+      LIBRO_ID: number;
+      LIBRO_TITULO: string;
+      AUTOR: string;
+      PRESTAMO_ID: number;
+      FECHA_PRESTAMO: string;
+      FECHA_DEVOLUCION: string;
+      ESTADO: string;
+    }
+    const prestamosUsuario: UsuarioPrestamo[] = Array.isArray(result)
+      ? result.map((p: unknown) => p as UsuarioPrestamo)
+      : [];
+
     return NextResponse.json(
       {
         status: "success",
-        data: result,
+        data: prestamosUsuario,
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error en GET /api/prestamos/:id", error);
     return NextResponse.json(
       {
         status: "error",
         message: "No se pudieron obtener los préstamos del usuario.",
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );

@@ -69,7 +69,7 @@ export default function UserFilters({
       {(searchTerm || selectedRole) && (
         <div className="mt-4 text-blue-200 text-sm">
           Filtros aplicados:
-          {searchTerm && <span className="text-white ml-2">Búsqueda: "{searchTerm}"</span>}
+          {searchTerm && <span className="text-white ml-2">Búsqueda: &quot;{searchTerm}&quot;</span>}
           {selectedRole && <span className="text-white ml-2">Rol: {selectedRole}</span>}
         </div>
       )}

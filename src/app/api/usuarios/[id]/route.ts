@@ -118,15 +118,18 @@ export async function PUT(
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error actualizando usuario:', error);
 
     let errorMessage = 'Error interno del servidor';
-    if (error.message?.includes('ORA-00001')) errorMessage = 'Error de duplicación en usuarios';
-    if (error.message?.includes('NJS-098')) errorMessage = 'Error en los parámetros de la consulta';
+    if (error instanceof Error) {
+      if (error.message.includes('ORA-00001')) errorMessage = 'Error de duplicación en usuarios';
+      if (error.message.includes('NJS-098')) errorMessage = 'Error en los parámetros de la consulta';
+    }
+
 
     return NextResponse.json(
-      { success: false, message: errorMessage, error: error.message },
+      { success: false, message: errorMessage, error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

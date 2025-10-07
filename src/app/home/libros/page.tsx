@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext'; // Importar el hook de autenticación
+import { useAuth } from '@/contexts/AuthContext';
 import BookGrid from '@/components/books/BookGrid';
 import BookSearch from '@/components/books/BookSearch';
 import BookFilters from '@/components/books/BookFilters';

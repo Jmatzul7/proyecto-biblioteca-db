@@ -1,5 +1,34 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '../../../lib/db/oracle';
+
+// Interfaces para los resultados de la base de datos
+interface Libro {
+  LIBRO_ID: number;
+  TITULO: string;
+  AUTOR: string;
+  ANIO_PUBLICACION: number;
+  NUM_COPIAS: number;
+  FECHA_REGISTRO: string;
+  URL_IMAGEN?: string;
+  GENERO_ID: number;
+  NOMBRE_GENERO: string;
+  COPIAS_DISPONIBLES: number;
+  TOTAL_COPIAS_REGISTRADAS?: number;
+  COPIAS_FISICAS_DISPONIBLES?: number;
+}
+
+interface TotalResult {
+  TOTAL: number;
+}
+
+interface NextIdResult {
+  NEXT_ID: number;
+}
+
+interface NextCopiaIdResult {
+  NEXT_COPIA_ID: number;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,12 +88,12 @@ export async function GET(request: NextRequest) {
     let librosFiltrados = libros || [];
     
     if (disponibilidad === 'available') {
-      librosFiltrados = librosFiltrados.filter((libro: any) => 
-        (libro.COPIAS_DISPONIBLES || 0) > 0
+      librosFiltrados = librosFiltrados.filter((libro) => 
+        ((libro as Libro).COPIAS_DISPONIBLES || 0) > 0
       );
     } else if (disponibilidad === 'unavailable') {
-      librosFiltrados = librosFiltrados.filter((libro: any) => 
-        (libro.COPIAS_DISPONIBLES || 0) === 0
+      librosFiltrados = librosFiltrados.filter((libro) => 
+        ((libro as Libro).COPIAS_DISPONIBLES || 0) === 0
       );
     }
 
@@ -77,28 +106,31 @@ export async function GET(request: NextRequest) {
       binds
     );
 
-    const total = totalResult ? (totalResult[0] as any).TOTAL : 0;
+  const total = totalResult ? (totalResult[0] as TotalResult).TOTAL : 0;
 
     // Formatear respuesta
-    const librosFormateados = librosFiltrados.map((libro: any) => ({
-      libro_id: libro.LIBRO_ID?.toString(),
-      titulo: libro.TITULO,
-      autor: libro.AUTOR,
-      anio_publicacion: libro.ANIO_PUBLICACION?.toString(),
-      num_copias: libro.NUM_COPIAS?.toString(),
-      fecha_registro: libro.FECHA_REGISTRO,
-      url_imagen: libro.URL_IMAGEN,
-      genero: {
-        genero_id: libro.GENERO_ID?.toString(),
-        nombre_genero: libro.NOMBRE_GENERO
-      },
-      copias_disponibles: libro.COPIAS_DISPONIBLES?.toString() || '0',
-      // Información adicional para debugging
-      _debug: {
-        total_copias_registradas: libro.TOTAL_COPIAS_REGISTRADAS?.toString(),
-        copias_fisicas_disponibles: libro.COPIAS_FISICAS_DISPONIBLES?.toString()
-      }
-    }));
+    const librosFormateados = librosFiltrados.map((libro) => {
+      const l = libro as Libro;
+      return {
+        libro_id: l.LIBRO_ID?.toString(),
+        titulo: l.TITULO,
+        autor: l.AUTOR,
+        anio_publicacion: l.ANIO_PUBLICACION?.toString(),
+        num_copias: l.NUM_COPIAS?.toString(),
+        fecha_registro: l.FECHA_REGISTRO,
+        url_imagen: l.URL_IMAGEN,
+        genero: {
+          genero_id: l.GENERO_ID?.toString(),
+          nombre_genero: l.NOMBRE_GENERO
+        },
+        copias_disponibles: l.COPIAS_DISPONIBLES?.toString() || '0',
+        // Información adicional para debugging
+        _debug: {
+          total_copias_registradas: l.TOTAL_COPIAS_REGISTRADAS?.toString(),
+          copias_fisicas_disponibles: l.COPIAS_FISICAS_DISPONIBLES?.toString()
+        }
+      };
+    });
 
     return NextResponse.json({
       success: true,
@@ -153,7 +185,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const nextId = (idResult[0] as any).NEXT_ID;
+  const nextId = (idResult[0] as NextIdResult).NEXT_ID;
 
     // Insertar el nuevo libro
     const insertSql = `
@@ -193,7 +225,7 @@ export async function POST(request: NextRequest) {
       );
       
       if (copiaIdResult && copiaIdResult.length > 0) {
-        let nextCopiaId = (copiaIdResult[0] as any).NEXT_COPIA_ID;
+  let nextCopiaId = (copiaIdResult[0] as NextCopiaIdResult).NEXT_COPIA_ID;
 
         // Crear cada copia individual
         for (let i = 0; i < numCopias; i++) {
@@ -235,7 +267,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const libro = libroCreado[0] as any;
+  const libro = libroCreado[0] as Libro;
 
     // Formatear respuesta
     const libroFormateado = {

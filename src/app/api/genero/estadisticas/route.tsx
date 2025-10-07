@@ -1,6 +1,20 @@
+
 // app/api/generos/estadisticas/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import runQuery from '../../../../lib/db/oracle';
+import runQuery from '@/lib/db/oracle';
+
+// Interfaces para los resultados de la base de datos
+interface GeneroPopular {
+  GENERO_ID: number;
+  NOMBRE_GENERO: string;
+  TOTAL_LIBROS: number;
+  TOTAL_COPIAS: number;
+  TOTAL_PRESTAMOS: number;
+}
+
+interface TotalResult {
+  TOTAL: number;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,18 +53,21 @@ export async function GET(request: NextRequest) {
     // Formatear respuesta
     const datosFormateados = {
       estadisticas_generales: {
-        total_generos: totalGeneros ? (totalGeneros[0] as any).TOTAL : 0,
-        total_libros: totalLibros ? (totalLibros[0] as any).TOTAL : 0,
-        total_copias: totalCopias ? (totalCopias[0] as any).TOTAL : 0,
-        prestamos_activos: prestamosActivos ? (prestamosActivos[0] as any).TOTAL : 0
+        total_generos: totalGeneros ? (totalGeneros[0] as TotalResult).TOTAL : 0,
+        total_libros: totalLibros ? (totalLibros[0] as TotalResult).TOTAL : 0,
+        total_copias: totalCopias ? (totalCopias[0] as TotalResult).TOTAL : 0,
+        prestamos_activos: prestamosActivos ? (prestamosActivos[0] as TotalResult).TOTAL : 0
       },
-      generos_populares: generosPopulares?.map((genero: any) => ({
-        genero_id: genero.GENERO_ID,
-        nombre_genero: genero.NOMBRE_GENERO,
-        total_libros: genero.TOTAL_LIBROS,
-        total_copias: genero.TOTAL_COPIAS,
-        total_prestamos: genero.TOTAL_PRESTAMOS
-      }))
+      generos_populares: generosPopulares?.map((genero) => {
+        const g = genero as GeneroPopular;
+        return {
+          genero_id: g.GENERO_ID,
+          nombre_genero: g.NOMBRE_GENERO,
+          total_libros: g.TOTAL_LIBROS,
+          total_copias: g.TOTAL_COPIAS,
+          total_prestamos: g.TOTAL_PRESTAMOS
+        };
+      })
     };
 
     return NextResponse.json({

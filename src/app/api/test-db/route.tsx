@@ -20,12 +20,12 @@ export async function GET() {
             data: result,
         }, { status: 200 });
 
-    } catch (error:any) {
-        console.error("FALLO DE CONEXIÓN A DB:", error.message);
+    } catch (error:unknown) {
+        console.error("FALLO DE CONEXIÓN A DB:", error instanceof Error ? error.message : String(error));
         return NextResponse.json({ 
             status: "error", 
             message: "Fallo al conectar o consultar la base de datos Oracle.",
-            error_details: error.message
+            error_details: error instanceof Error ? error.message : String(error)
         }, { status: 500 });
     }
 }

@@ -1,17 +1,29 @@
 'use client';
-
-import { useState } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: string;
+  section: string;
+}
+
+interface Section {
+  name: string;
+  items: NavigationItem[];
+}
+
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  const navigation = [
+  const navigation: NavigationItem[] = [
     { name: 'Inicio', href: '/', icon: '🏠', section: 'Principal' },
     { name: 'Libros', href: '/libros', icon: '📚', section: 'Biblioteca' },
     { name: 'Préstamos', href: '/libros/prestamos', icon: '📋', section: 'Administración' },
@@ -20,7 +32,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const isActive = (href: string) => pathname === href;
 
-  const sections = navigation.reduce((acc: any[], item) => {
+  const sections: Section[] = navigation.reduce<Section[]>((acc, item) => {
     const section = acc.find(s => s.name === item.section);
     if (section) {
       section.items.push(item);
@@ -79,8 +91,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   {section.name}
                 </h3>
                 <div className="space-y-1">
-                  {section.items.map((item: any) => (
-                    <a
+                  {section.items.map((item) => (
+                    <Link
                       key={item.name}
                       href={item.href}
                       onClick={() => window.innerWidth < 768 && onClose()}
@@ -97,7 +109,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                       {isActive(item.href) && (
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       )}
-                    </a>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -116,7 +128,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               <div className="text-blue-200 text-xs truncate">Administrador</div>
             </div>
           </div>
-          <a
+          <Link
             href="/login"
             className="flex items-center space-x-2 text-red-400 hover:text-red-300 font-semibold transition-colors duration-300 text-sm"
           >
@@ -124,7 +136,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
             <span>Cerrar Sesión</span>
-          </a>
+          </Link>
         </div>
       </div>
     </>

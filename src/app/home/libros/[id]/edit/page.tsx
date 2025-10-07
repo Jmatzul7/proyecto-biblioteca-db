@@ -2,9 +2,18 @@
 
 import { useEffect, useState } from 'react';
 
+
+interface BookForm {
+  titulo: string;
+  autor: string;
+  anio_publicacion: number;
+  genero_id?: number;
+  num_copias: number;
+}
+
 export default function EditBookPage({ params }: { params: { id: string } }) {
   const id = Number(params.id);
-  const [form, setForm] = useState<any>(null);
+  const [form, setForm] = useState<BookForm | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -14,9 +23,9 @@ export default function EditBookPage({ params }: { params: { id: string } }) {
       setForm({
         titulo: data.TITULO ?? data.titulo,
         autor: data.AUTOR ?? data.autor,
-        anio_publicacion: data.ANIO_PUBLICACION ?? data.anio_publicacion,
-        genero_id: data.GENERO_ID ?? data.genero_id,
-        num_copias: data.NUM_COPIAS ?? data.num_copias,
+        anio_publicacion: Number(data.ANIO_PUBLICACION ?? data.anio_publicacion),
+        genero_id: data.GENERO_ID !== undefined ? Number(data.GENERO_ID) : (data.genero_id !== undefined ? Number(data.genero_id) : undefined),
+        num_copias: Number(data.NUM_COPIAS ?? data.num_copias),
       });
     })();
   }, [id]);
@@ -24,7 +33,7 @@ export default function EditBookPage({ params }: { params: { id: string } }) {
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!form) return;
     const { name, value } = e.target;
-    setForm((f: any) => ({ ...f, [name]: name.includes('anio') || name.includes('num_copias') ? Number(value) : value }));
+  setForm((f) => f ? { ...f, [name]: name.includes('anio') || name.includes('num_copias') || name === 'genero_id' ? Number(value) : value } : f);
   };
 
   async function onSubmit(e: React.FormEvent) {

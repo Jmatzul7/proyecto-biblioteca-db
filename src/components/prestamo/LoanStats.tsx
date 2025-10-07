@@ -1,5 +1,11 @@
+
+interface Loan {
+  ESTADO: string;
+  FECHA_DEVOLUCION?: string;
+}
+
 interface LoanStatsProps {
-  loans: any[];
+  loans: Loan[];
 }
 
 export default function LoanStats({ loans }: LoanStatsProps) {

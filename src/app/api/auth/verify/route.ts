@@ -1,6 +1,16 @@
 // app/api/auth/verify/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
+
+// Interfaz para el usuario obtenido de la base de datos
+interface DBUser {
+  USUARIO_ID: number;
+  NOMBRE: string;
+  USUARIO_LOGIN: string;
+  ROL_ID: number;
+  NOMBRE_ROL: string;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -91,7 +101,7 @@ export async function GET(request: NextRequest) {
         return response;
       }
 
-      const currentUser = users[0] as any;
+  const currentUser = users[0] as DBUser;
 
       // Actualizar sesión con datos actuales
       const updatedSession = {

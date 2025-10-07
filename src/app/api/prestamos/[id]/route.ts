@@ -17,6 +17,17 @@ export async function GET(
       );
     }
 
+    interface Prestamo {
+      PRESTAMO_ID: number;
+      LIBRO_ID: number;
+      USUARIO_ID: number;
+      ESTADO: string;
+      FECHA_PRESTAMO: string;
+      FECHA_DEVOLUCION: string;
+      USUARIO_NOMBRE: string;
+      LIBRO_TITULO: string;
+      // ...otros campos si existen
+    }
     const prestamos = await runQuery(
       `SELECT p.*, u.nombre as usuario_nombre, l.titulo as libro_titulo
        FROM PRESTAMOS p
@@ -33,8 +44,9 @@ export async function GET(
       );
     }
 
-    console.log('Préstamo encontrado:', prestamos[0]);
-    return NextResponse.json(prestamos[0]);
+    const prestamo = prestamos[0] as Prestamo;
+    console.log('Préstamo encontrado:', prestamo);
+    return NextResponse.json(prestamo);
 
   } catch (error) {
     console.error('Error:', error);
@@ -62,7 +74,10 @@ export async function POST(request: NextRequest) {
     const nextIdResult = await runQuery(
       'SELECT COALESCE(MAX(libro_id), 0) + 1 as next_id FROM LIBROS'
     );
-    const nextId = nextIdResult ? (nextIdResult[0] as any).NEXT_ID : 1;
+    interface NextIdResult {
+      NEXT_ID: number;
+    }
+    const nextId = nextIdResult ? (nextIdResult[0] as NextIdResult).NEXT_ID : 1;
 
     // Insertar nuevo libro
     await runQuery(

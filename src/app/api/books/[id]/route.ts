@@ -1,5 +1,43 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
+
+// Interfaces para los resultados de la base de datos
+interface Libro {
+  LIBRO_ID: number;
+  TITULO: string;
+  AUTOR: string;
+  ANIO_PUBLICACION: number;
+  NUM_COPIAS: number;
+  FECHA_REGISTRO: string;
+  URL_IMAGEN?: string;
+  GENERO_ID: number;
+  NOMBRE_GENERO: string;
+  COPIAS_DISPONIBLES: number;
+}
+
+interface LibroActual {
+  TITULO: string;
+  AUTOR: string;
+  ANIO_PUBLICACION: number;
+  GENERO_ID: number;
+  NUM_COPIAS: number;
+}
+
+interface LibroExistente {
+  TITULO: string;
+}
+
+interface Copia {
+  COPIA_ID: number;
+  ESTADO_COPIA: string;
+}
+
+interface PrestamoActivo {
+  PRESTAMO_ID: number;
+  USUARIO_NOMBRE: string;
+  FECHA_PRESTAMO: string;
+}
 
 export async function GET(
   request: NextRequest,
@@ -34,7 +72,7 @@ export async function GET(
       );
     }
 
-    const libro = libros[0] as any;
+  const libro = libros[0] as Libro;
 
     // Obtener información de las copias
     const copias = await runQuery(
@@ -68,15 +106,21 @@ export async function GET(
         nombre_genero: libro.NOMBRE_GENERO
       },
       copias_disponibles: libro.COPIAS_DISPONIBLES,
-      copias: copias?.map((copia: any) => ({
-        copia_id: copia.COPIA_ID,
-        estado_copia: copia.ESTADO_COPIA
-      })),
-      prestamos_activos: prestamosActivos?.map((prestamo: any) => ({
-        prestamo_id: prestamo.PRESTAMO_ID,
-        usuario_nombre: prestamo.USUARIO_NOMBRE,
-        fecha_prestamo: prestamo.FECHA_PRESTAMO
-      }))
+      copias: copias?.map((copia) => {
+        const c = copia as Copia;
+        return {
+          copia_id: c.COPIA_ID,
+          estado_copia: c.ESTADO_COPIA
+        };
+      }),
+      prestamos_activos: prestamosActivos?.map((prestamo) => {
+        const p = prestamo as PrestamoActivo;
+        return {
+          prestamo_id: p.PRESTAMO_ID,
+          usuario_nombre: p.USUARIO_NOMBRE,
+          fecha_prestamo: p.FECHA_PRESTAMO
+        };
+      })
     };
 
     return NextResponse.json({
@@ -124,7 +168,7 @@ export async function PUT(
       );
     }
 
-    const libroActual = libroActualResult[0] as any;
+  const libroActual = libroActualResult[0] as LibroActual;
 
     // 2️⃣ Actualizar solo num_copias, mantener el resto igual
     const updateSql = `
@@ -207,7 +251,7 @@ export async function DELETE(
       );
     }
 
-    const tituloLibro = (libroExistente[0] as any).TITULO;
+  const tituloLibro = (libroExistente[0] as LibroExistente).TITULO;
 
     // Verificar si tiene préstamos activos
     const prestamosActivos = await runQuery(
@@ -215,7 +259,11 @@ export async function DELETE(
       [libroId]
     );
 
-    const totalPrestamos = prestamosActivos ? (prestamosActivos[0] as any).TOTAL : 0;
+    // Si quieres tipar también el resultado de prestamosActivos en DELETE:
+    interface PrestamosCount {
+      TOTAL: number;
+    }
+    const totalPrestamos = prestamosActivos ? (prestamosActivos[0] as PrestamosCount).TOTAL : 0;
 
     if (totalPrestamos > 0) {
       return NextResponse.json(

@@ -8,6 +8,7 @@ import MyLoanList from '@/components/prestamo/misprestamos/MyLoanList';
 import LoanStatusTabs from '@/components/prestamo/misprestamos/LoanStatusTabs';
 import UserProfile from '@/components/prestamo/misprestamos/UserProfile';
 import LoanDetailsModal from '@/components/prestamo/LoanDetailsModal';
+import Link from 'next/link';
 
 interface MyLoan {
   USUARIO_ID: string;
@@ -223,19 +224,19 @@ export default function MyLoansPage() {
               <div className="text-6xl mb-4">📚</div>
               <h3 className="text-xl text-white font-semibold mb-2">No tienes préstamos</h3>
               <p className="text-blue-200 mb-6">Comienza explorando nuestra biblioteca para encontrar libros interesantes.</p>
-              <a
+              <Link
                 href="/home/libros"
                 className="inline-flex items-center justify-center px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105"
               >
                 Explorar Biblioteca
-              </a>
+              </Link>
             </div>
           )}
 
           {/* Botones de acción */}
           {loans.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-              <a
+              <Link
                 href="/home/libros"
                 className="inline-flex items-center justify-center px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105"
               >
@@ -243,9 +244,9 @@ export default function MyLoansPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
                 Explorar Más Libros
-              </a>
-              
-              <a
+              </Link>
+
+              <Link
                 href="/"
                 className="inline-flex items-center justify-center px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-2xl transition-all duration-300 transform hover:scale-105 border border-white/20"
               >
@@ -253,7 +254,7 @@ export default function MyLoansPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Volver al Inicio
-              </a>
+              </Link>
             </div>
           )}
         </div>

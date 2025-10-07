@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import runQuery from '../../../lib/db/oracle';
+import runQuery from '@/lib/db/oracle';
+
+    interface Usuario {
+      USUARIO_ID: number;
+      NOMBRE: string;
+      USUARIO_LOGIN: string;
+      ROL_ID: number;
+      FECHA_REGISTRO: string;
+      TIPO_USUARIO: string;
+    }
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,14 +43,18 @@ export async function GET(request: NextRequest) {
 
     query += ` ORDER BY u.fecha_registro DESC, u.nombre`;
 
-    const usuarios = await runQuery(query, params);
+
+    const usuariosResult = await runQuery(query, params);
+    const usuarios: Usuario[] = Array.isArray(usuariosResult)
+      ? usuariosResult.map((u: unknown) => u as Usuario)
+      : [];
 
     return NextResponse.json({
       success: true,
       data: usuarios
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error obteniendo usuarios:', error);
     return NextResponse.json(
       { success: false, message: 'Error interno del servidor' },
@@ -94,7 +107,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const nextId = (idResult[0] as any)?.NEXT_ID;
+    interface NextIdResult {
+      NEXT_ID: number;
+    }
+    const nextId = (idResult[0] as NextIdResult)?.NEXT_ID;
 
     if (!nextId) {
       return NextResponse.json(
@@ -145,15 +161,18 @@ export async function POST(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error creando usuario:', error);
 
     let errorMessage = 'Error interno del servidor';
-    if (error.message?.includes('ORA-00001')) errorMessage = 'Error de duplicación en usuarios';
-    if (error.message?.includes('NJS-098')) errorMessage = 'Error en los parámetros de la consulta';
+    if (error instanceof Error) {
+      if (error.message.includes('ORA-00001')) errorMessage = 'Error de duplicación en usuarios';
+      if (error.message.includes('NJS-098')) errorMessage = 'Error en los parámetros de la consulta';
+    }
+
 
     return NextResponse.json(
-      { success: false, message: errorMessage, error: error.message },
+      { success: false, message: errorMessage, error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

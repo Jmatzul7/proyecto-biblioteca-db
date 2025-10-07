@@ -54,7 +54,15 @@ export async function PUT(
       );
     }
 
-    const prestamo = prestamoInfo[0] as any;
+    interface Prestamo {
+      PRESTAMO_ID: number;
+      LIBRO_ID: number;
+      USUARIO_ID: number;
+      ESTADO: string;
+      TITULO: string;
+      NUM_COPIAS: number;
+    }
+    const prestamo = prestamoInfo[0] as Prestamo;
     const libroId = prestamo.LIBRO_ID;
     const estadoActual = prestamo.ESTADO;
     const numCopiasTotales = prestamo.NUM_COPIAS;
@@ -93,7 +101,10 @@ export async function PUT(
     // Manejo seguro del resultado
     let prestamosActivos = 0;
     if (prestamosActivosResult && prestamosActivosResult.length > 0) {
-      prestamosActivos = (prestamosActivosResult[0] as any)?.PRESTAMOS_ACTIVOS || 0;
+      interface PrestamosActivosResult {
+        PRESTAMOS_ACTIVOS: number;
+      }
+      prestamosActivos = (prestamosActivosResult[0] as PrestamosActivosResult)?.PRESTAMOS_ACTIVOS || 0;
     }
 
     // Calcular copias disponibles (solo para la respuesta, no actualizamos la tabla)

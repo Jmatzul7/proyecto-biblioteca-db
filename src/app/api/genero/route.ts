@@ -1,6 +1,19 @@
+
 // app/api/generos/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
+
+// Interfaces para los resultados de la base de datos
+interface Genero {
+  GENERO_ID: number;
+  NOMBRE_GENERO: string;
+  TOTAL_LIBROS: number;
+  LIBROS_CON_COPIAS: number;
+}
+
+interface NextIdResult {
+  NEXT_ID: number;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,12 +29,15 @@ export async function GET(request: NextRequest) {
     );
 
     // Formatear respuesta
-    const generosFormateados = generos?.map((genero: any) => ({
-      genero_id: genero.GENERO_ID,
-      nombre_genero: genero.NOMBRE_GENERO,
-      total_libros: genero.TOTAL_LIBROS,
-      libros_con_copias: genero.LIBROS_CON_COPIAS
-    }));
+    const generosFormateados = generos?.map((genero) => {
+      const g = genero as Genero;
+      return {
+        genero_id: g.GENERO_ID,
+        nombre_genero: g.NOMBRE_GENERO,
+        total_libros: g.TOTAL_LIBROS,
+        libros_con_copias: g.LIBROS_CON_COPIAS
+      };
+    });
 
     return NextResponse.json({
       success: true,
@@ -68,7 +84,7 @@ export async function POST(request: NextRequest) {
     const nextIdResult = await runQuery(
       'SELECT COALESCE(MAX(genero_id), 0) + 1 as next_id FROM GENEROS'
     );
-    const nextId = nextIdResult ? (nextIdResult[0] as any).NEXT_ID : 1;
+  const nextId = nextIdResult ? (nextIdResult[0] as NextIdResult).NEXT_ID : 1;
 
     // Insertar nuevo género
     await runQuery(

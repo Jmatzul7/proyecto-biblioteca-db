@@ -53,7 +53,16 @@ export async function PUT(
       );
     }
 
-    const prestamo = prestamoInfo[0] as any;
+    interface Prestamo {
+      PRESTAMO_ID: number;
+      LIBRO_ID: number;
+      ESTADO: string;
+      FECHA_DEVOLUCION: string;
+      TITULO: string;
+      NUM_COPIAS: number;
+      PRESTAMOS_ACTIVOS: number;
+    }
+    const prestamo = prestamoInfo[0] as Prestamo;
     const estadoActual = prestamo.ESTADO;
     const libroId = prestamo.LIBRO_ID;
     const numCopias = prestamo.NUM_COPIAS;

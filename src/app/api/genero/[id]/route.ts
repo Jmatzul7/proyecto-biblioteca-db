@@ -1,6 +1,32 @@
+
 // app/api/generos/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '../../../../lib/db/oracle';
+
+// Interfaces para los resultados de la base de datos
+interface Genero {
+  GENERO_ID: number;
+  NOMBRE_GENERO: string;
+  TOTAL_LIBROS: number;
+  TOTAL_COPIAS: number;
+}
+
+interface Libro {
+  LIBRO_ID: number;
+  TITULO: string;
+  AUTOR: string;
+  ANIO_PUBLICACION: number;
+  NUM_COPIAS: number;
+  COPIAS_DISPONIBLES: number;
+}
+
+interface GeneroExistente {
+  NOMBRE_GENERO: string;
+}
+
+interface LibrosAsociados {
+  TOTAL: number;
+}
 
 export async function GET(
   request: NextRequest,
@@ -35,7 +61,7 @@ export async function GET(
       );
     }
 
-    const genero = generos[0] as any;
+  const genero = generos[0] as Genero;
 
     // Obtener libros de este género
     const libros = await runQuery(
@@ -55,14 +81,17 @@ export async function GET(
         total_libros: genero.TOTAL_LIBROS,
         total_copias: genero.TOTAL_COPIAS || 0
       },
-      libros: libros?.map((libro: any) => ({
-        libro_id: libro.LIBRO_ID,
-        titulo: libro.TITULO,
-        autor: libro.AUTOR,
-        anio_publicacion: libro.ANIO_PUBLICACION,
-        num_copias: libro.NUM_COPIAS,
-        copias_disponibles: libro.COPIAS_DISPONIBLES
-      }))
+      libros: libros?.map((libro) => {
+        const l = libro as Libro;
+        return {
+          libro_id: l.LIBRO_ID,
+          titulo: l.TITULO,
+          autor: l.AUTOR,
+          anio_publicacion: l.ANIO_PUBLICACION,
+          num_copias: l.NUM_COPIAS,
+          copias_disponibles: l.COPIAS_DISPONIBLES
+        };
+      })
     };
 
     return NextResponse.json({
@@ -187,7 +216,7 @@ export async function DELETE(
       );
     }
 
-    const nombreGenero = (generoExistente[0] as any).NOMBRE_GENERO;
+  const nombreGenero = (generoExistente[0] as GeneroExistente).NOMBRE_GENERO;
 
     // Verificar si hay libros asociados a este género
     const librosAsociados = await runQuery(
@@ -195,7 +224,7 @@ export async function DELETE(
       [generoId]
     );
 
-    const totalLibros = librosAsociados ? (librosAsociados[0] as any).TOTAL : 0;
+  const totalLibros = librosAsociados ? (librosAsociados[0] as LibrosAsociados).TOTAL : 0;
 
     if (totalLibros > 0) {
       return NextResponse.json(
