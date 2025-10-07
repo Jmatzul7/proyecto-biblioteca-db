@@ -2,13 +2,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '../../../../lib/db/oracle';
 
-export async function GET(
-  request: NextRequest,
-   context: { params: { id: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
-
-    const prestamoId = Number(context.params.id);
+    // Extraer el id de la URL
+    const urlParts = request.url.split('/');
+    const id = urlParts[urlParts.length - 1];
+    const prestamoId = Number(id);
 
     if (!prestamoId) {
       return NextResponse.json(

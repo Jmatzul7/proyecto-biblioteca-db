@@ -224,12 +224,12 @@ export async function PUT(request: NextRequest) {
 }
 
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest) {
   try {
-    const libroId = Number(params.id);
+    // Extraer el id de la URL
+    const urlParts = request.url.split('/');
+    const id = urlParts[urlParts.length - 1];
+    const libroId = Number(id);
 
     if (!libroId) {
       return NextResponse.json(
