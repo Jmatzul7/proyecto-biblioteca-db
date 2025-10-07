@@ -143,8 +143,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (error) {
-    console.error('❌ Error obteniendo libros:', error);
+  } catch (error: unknown) {
+    console.error('❌ Error obteniendo libros:', (error as { message: string }).message);
     return NextResponse.json(
       { success: false, message: 'Error interno del servidor' },
       { status: 500 }
@@ -291,32 +291,30 @@ export async function POST(request: NextRequest) {
       data: libroFormateado
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error creando libro:', error);
-    
     // Manejar errores específicos de Oracle
     let errorMessage = 'Error interno del servidor al crear el libro';
-    
-    if (error.message) {
+    if (typeof error === 'object' && error && 'message' in error) {
+      const errMsg = (error as { message: string }).message;
       // Error de constraint única (título duplicado)
-      if (error.message.includes('ORA-00001')) {
+      if (errMsg.includes('ORA-00001')) {
         errorMessage = 'Ya existe un libro con ese título';
       }
       // Error de foreign key (género no existe)
-      else if (error.message.includes('ORA-02291')) {
+      else if (errMsg.includes('ORA-02291')) {
         errorMessage = 'El género seleccionado no existe';
       }
       // Error de datos inválidos
-      else if (error.message.includes('ORA-01722')) {
+      else if (errMsg.includes('ORA-01722')) {
         errorMessage = 'Datos numéricos inválidos';
       }
     }
-
     return NextResponse.json(
       { 
         success: false, 
         message: errorMessage,
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' && typeof error === 'object' && error && 'message' in error ? (error as { message: string }).message : undefined
       },
       { status: 500 }
     );

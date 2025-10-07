@@ -145,15 +145,18 @@ export async function PUT(
       }
     });
 
-  } catch (error: any) {
-    console.error('❌ Error actualizando préstamo:', error);
+  } catch (error: unknown) {
+    console.error('❌ Error actualizando préstamo:', (error as { message: string }).message);
 
     let errorMessage = 'Error interno del servidor';
-    if (error.message?.includes('ORA-00001')) errorMessage = 'Error de duplicación';
-    if (error.message?.includes('NJS-098')) errorMessage = 'Error en los parámetros de la consulta';
+    if (typeof error === 'object' && error && 'message' in error) {
+      const errMsg = (error as { message: string }).message;
+      if (errMsg.includes('ORA-00001')) errorMessage = 'Error de duplicación';
+      if (errMsg.includes('NJS-098')) errorMessage = 'Error en los parámetros de la consulta';
+    }
 
     return NextResponse.json(
-      { success: false, message: errorMessage, error: error.message },
+      { success: false, message: errorMessage, error: (error as { message: string }).message },
       { status: 500 }
     );
   }

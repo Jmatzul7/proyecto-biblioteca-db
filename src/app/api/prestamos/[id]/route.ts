@@ -26,7 +26,6 @@ export async function GET(
       FECHA_DEVOLUCION: string;
       USUARIO_NOMBRE: string;
       LIBRO_TITULO: string;
-      // ...otros campos si existen
     }
     const prestamos = await runQuery(
       `SELECT p.*, u.nombre as usuario_nombre, l.titulo as libro_titulo
@@ -48,8 +47,8 @@ export async function GET(
     console.log('Préstamo encontrado:', prestamo);
     return NextResponse.json(prestamo);
 
-  } catch (error) {
-    console.error('Error:', error);
+  } catch (error: unknown) {
+    console.error('Error:', (error as { message: string }).message);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -117,8 +116,8 @@ export async function POST(request: NextRequest) {
       data: { libro_id: nextId }
     }, { status: 201 });
 
-  } catch (error) {
-    console.error('❌ Error creando libro:', error);
+  } catch (error: unknown) {
+    console.error('❌ Error creando libro:', (error as { message: string }).message);
     return NextResponse.json(
       { success: false, message: 'Error interno del servidor' },
       { status: 500 }

@@ -251,7 +251,7 @@ export async function DELETE(
       );
     }
 
-  const tituloLibro = (libroExistente[0] as LibroExistente).TITULO;
+    const tituloLibro = (libroExistente[0] as LibroExistente).TITULO;
 
     // Verificar si tiene préstamos activos
     const prestamosActivos = await runQuery(
@@ -305,7 +305,7 @@ export async function DELETE(
       message: 'Libro eliminado exitosamente'
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error eliminando libro:', error);
     return NextResponse.json(
       { success: false, message: 'Error interno del servidor' },
