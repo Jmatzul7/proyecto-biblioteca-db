@@ -2,6 +2,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
 
+interface usuario{
+USUARIO_ID: string,
+NOMBRE: string,
+USUARIO_LOGIN: string,
+CONTRASENA: string,
+ROL_ID: string,
+NOMBRE_ROL: string
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { usuario_login, contrasena } = await request.json();
@@ -36,7 +45,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = users[0] as any;
+    const user = users[0] as usuario;
     const isPasswordValid = contrasena === user.CONTRASENA;
     
     if (!isPasswordValid) {
