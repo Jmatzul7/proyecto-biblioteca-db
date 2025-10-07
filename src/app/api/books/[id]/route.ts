@@ -39,12 +39,12 @@ interface PrestamoActivo {
   FECHA_PRESTAMO: string;
 }
 
-export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
-    const libroId = Number(context.params.id);
+    // Extraer el id de la URL
+    const urlParts = request.url.split('/');
+    const id = urlParts[urlParts.length - 1];
+    const libroId = Number(id);
 
     if (!libroId || isNaN(libroId)) {
       return NextResponse.json(
