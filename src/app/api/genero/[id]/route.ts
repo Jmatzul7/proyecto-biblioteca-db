@@ -28,12 +28,12 @@ interface LibrosAsociados {
   TOTAL: number;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
-    const generoId = Number(params.id);
+    // Extraer el id de la URL
+    const urlParts = request.url.split('/');
+    const id = urlParts[urlParts.length - 1];
+    const generoId = Number(id);
 
     if (!generoId || isNaN(generoId)) {
       return NextResponse.json(
@@ -109,12 +109,12 @@ export async function GET(
 }
 
 // app/api/generos/[id]/route
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest) {
   try {
-    const generoId = Number(params.id);
+    // Extraer el id de la URL
+    const urlParts = request.url.split('/');
+    const id = urlParts[urlParts.length - 1];
+    const generoId = Number(id);
     const body = await request.json();
     const { nombre_genero } = body;
 
@@ -189,12 +189,12 @@ export async function PUT(
 }
 
 // app/api/generos/[id]/route
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest) {
   try {
-    const generoId = Number(params.id);
+    // Extraer el id de la URL
+    const urlParts = request.url.split('/');
+    const id = urlParts[urlParts.length - 1];
+    const generoId = Number(id);
 
     if (!generoId) {
       return NextResponse.json(

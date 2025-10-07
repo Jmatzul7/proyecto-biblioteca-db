@@ -2,13 +2,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest) {
   try {
-    const { id } = await params;
-    const prestamoId = id;
+    // Extraer el id de la URL
+    const urlParts = request.url.split('/');
+    const prestamoId = urlParts[urlParts.length - 2];
 
     console.log('🔄 Solicitando renovación para préstamo:', prestamoId);
 
