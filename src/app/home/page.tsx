@@ -1,11 +1,10 @@
-// app/home/page.tsx
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
 import BooksPage from './libros/page';
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (

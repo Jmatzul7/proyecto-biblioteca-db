@@ -220,7 +220,6 @@ export default function LoanModal({ isOpen, onClose, onLoanCreated, book }: Loan
               className="text-gray-800"
               
             />
-{/*icon={userIcon} */}
 
             {/* Fecha de devolución */}
             <Input

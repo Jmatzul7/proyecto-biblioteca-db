@@ -1,4 +1,3 @@
-// app/api/usuarios/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
 

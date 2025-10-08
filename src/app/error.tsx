@@ -1,4 +1,3 @@
-// app/error.tsx (para errores generales)
 'use client';
 
 import { useEffect } from 'react';

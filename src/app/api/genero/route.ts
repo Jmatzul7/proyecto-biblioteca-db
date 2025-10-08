@@ -1,5 +1,3 @@
-
-// app/api/generos/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
 
@@ -96,7 +94,7 @@ export async function POST(request: NextRequest) {
     try {
       await runQuery(
         `INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle)
-         VALUES (AUDITORIA_SEQ.NEXTVAL, 1, 'NUEVO_GENERO', 'Género creado: ${nombre_genero}')`
+         VALUES (SELECT NVL(MAX(evento_id), 0) + 1, 1, 'Creacion NUEVO_GENERO', 'Género creado: ${nombre_genero}')`
       );
     } catch (auditError) {
       console.log('⚠️ No se pudo registrar auditoría');

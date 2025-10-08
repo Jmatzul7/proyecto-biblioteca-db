@@ -1,4 +1,3 @@
-// components/books/BookCard.tsx
 'use client';
 
 import { useState } from 'react';
@@ -23,7 +22,7 @@ interface BookCardProps {
   book: Book;
   onBookLoan?: (book: Book) => void;
   onUpdateCopies?: (book: Book) => void; 
-  isStaff?: boolean; // ← NUEVA PROP para verificar si es staff
+  isStaff?: boolean;
 }
 
 export default function BookCard({ book, onBookLoan, onUpdateCopies, isStaff = false }: BookCardProps) {
@@ -156,7 +155,7 @@ export default function BookCard({ book, onBookLoan, onUpdateCopies, isStaff = f
           <span className="truncate">{book.autor}</span>
         </p>
 
-        {/* Información de copias mejorada */}
+        {/* Información de copias */}
         <div className="grid grid-cols-2 gap-4 text-sm mb-4">
           <div className="bg-white/5 rounded-lg p-3 text-center">
             <div className="text-cyan-400 font-bold text-lg">{copiasTotales}</div>
@@ -193,7 +192,7 @@ export default function BookCard({ book, onBookLoan, onUpdateCopies, isStaff = f
 
         {/* Botones de acción */}
         <div className="flex space-x-3">
-          {/* Botón de Reservar - SOLO HABILITADO PARA STAFF */}
+          {/* Botón de Reservar */}
           <button 
             onClick={handleReserveClick}
             className={`flex-1 py-2 px-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center space-x-2 ${
@@ -227,7 +226,7 @@ export default function BookCard({ book, onBookLoan, onUpdateCopies, isStaff = f
             )}
           </button>
           
-          {/* Botón para actualizar copias - SOLO HABILITADO PARA STAFF */}
+          {/* Botón para actualizar copias  */}
           <button 
             onClick={handleUpdateCopiesClick}
             className={`p-2 rounded-xl transition-all duration-300 transform flex items-center justify-center ${

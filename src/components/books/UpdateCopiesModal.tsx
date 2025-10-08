@@ -244,8 +244,8 @@ export default function UpdateCopiesModal({ isOpen, onClose, onCopiesUpdated, bo
               Cancelar
             </Button>
             <Button
-              type="button" // Cambiado a type="button"
-              onClick={handleButtonSubmit} // Usar la nueva función
+              type="button" 
+              onClick={handleButtonSubmit}
               loading={loading}
               icon={updateIcon}
               className="flex-1"

@@ -21,7 +21,7 @@ interface BookGridProps {
   loading?: boolean;
   onBookLoan?: (book: Book) => void; 
   onUpdateCopies?: (book: Book) => void;
-  isStaff?: boolean; // ← Agregar esta prop
+  isStaff?: boolean;
 }
 
 export default function BookGrid({ 

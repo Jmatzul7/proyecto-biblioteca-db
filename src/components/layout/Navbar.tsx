@@ -32,11 +32,14 @@ export default function Navbar() {
   const adminNavigation = [
     { name: 'Préstamos', href: '/home/libros/prestamos', icon: '📋', section: 'Administración' },
     { name: 'Usuarios', href: '/home/usuarios', icon: '👥', section: 'Usuarios' },
+    { name: 'Estadísticas', href: '/home/estadisticas', icon: '📊', section: 'Análisis' },
+    
   ];
 
     // Navegación adicional para administradores o bibliotecarios
   const bibliotecarioNavigation = [
     { name: 'Préstamos', href: '/home/libros/prestamos', icon: '📋', section: 'Administración' },
+    
   ];
 
   // Combinar navegación según el estado de autenticación y rol
@@ -179,7 +182,7 @@ export default function Navbar() {
                   key={item.name}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-3 ${
+                  className={`px-3 py-2 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-3 ${
                     isActive(item.href)
                       ? 'bg-cyan-500 text-white'
                       : 'text-white/80 hover:text-white hover:bg-white/10'

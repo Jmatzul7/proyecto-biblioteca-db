@@ -1,4 +1,3 @@
-// app/page.tsx
 'use client';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -48,7 +47,7 @@ export default function Home() {
         
         <ul className="flex flex-col space-y-4">
           {user ? (
-            // Usuario loggeado - Solo mostrar Explorar Libros
+            // Usuario loggeado
             <li>
               <Link
                 href="/home/libros"
@@ -61,7 +60,7 @@ export default function Home() {
               </Link>
             </li>
           ) : (
-            // Usuario no loggeado - Mostrar ambos botones
+            // Usuario no loggeado
             <>
               <li>
                 <Link

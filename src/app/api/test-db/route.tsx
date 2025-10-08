@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import runQuery from '@/lib/db/oracle'; // Asegúrate que la ruta sea correcta
+import runQuery from '@/lib/db/oracle'; 
 
 export async function GET() {
     try {
@@ -9,7 +9,7 @@ export async function GET() {
         
         console.log("Intentando conectar con Oracle...");
         
-        // Ejecutar la consulta. Si no lanza un error, la conexión fue exitosa.
+        // Ejecutar la consulta. 
         const result = await runQuery(sql1);
 
         console.log("Conexión exitosa. Resultado:", result);

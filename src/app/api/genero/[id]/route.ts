@@ -1,7 +1,5 @@
-
-// app/api/generos/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import runQuery from '../../../../lib/db/oracle';
+import runQuery from '@/lib/db/oracle';
 
 // Interfaces para los resultados de la base de datos
 interface Genero {

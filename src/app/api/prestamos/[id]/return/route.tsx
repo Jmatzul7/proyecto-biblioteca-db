@@ -1,4 +1,3 @@
-// app/api/loans/[id]/return/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
 
@@ -28,7 +27,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // 1. Obtener información del préstamo
+    // Obtener información del préstamo
     const prestamoInfoSql = `
       SELECT 
         p.prestamo_id,
@@ -75,7 +74,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // 2. Actualizar el préstamo con fecha de devolución real
+    // Actualizar el préstamo con fecha de devolución real
     const updatePrestamoSql = `
       UPDATE PRESTAMOS 
       SET estado = :1, 
@@ -86,7 +85,7 @@ export async function PUT(request: NextRequest) {
     console.log('🔄 Actualizando préstamo...');
     await runQuery(updatePrestamoSql, [estado, prestamoIdNum]);
 
-    // 3. Calcular préstamos activos para este libro (para información, no para actualizar)
+    // Calcular préstamos activos para este libro (para información, no para actualizar)
     const prestamosActivosSql = `
       SELECT COUNT(*) as prestamos_activos
       FROM PRESTAMOS 
@@ -114,7 +113,7 @@ export async function PUT(request: NextRequest) {
       copias_disponibles: copiasDisponibles
     });
 
-    // 4. Registrar en auditoría
+    // Registrar en auditoría
     try {
       const auditoriaSql = `
         INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle)

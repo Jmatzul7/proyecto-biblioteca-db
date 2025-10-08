@@ -1,4 +1,3 @@
-// app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
 
@@ -49,15 +48,17 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = contrasena === user.CONTRASENA;
     
     if (!isPasswordValid) {
-      // Registrar intento fallido sin usar secuencia
+      // Registrar intento fallido
       try {
+        console.log('Intento de login fallido, registrando auditoría'+ user.USUARIO_ID );
         await runQuery(
-          `INSERT INTO AUDITORIA (usuario_id, accion, detalle) 
-           VALUES (:1, 'LOGIN_FALLIDO', 'Intento de inicio de sesión fallido')`,
+          `INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle) 
+           VALUES ((SELECT NVL(MAX(evento_id), 0) + 1 FROM AUDITORIA), :1, 'LOGIN_FALLIDO', 'Intento de inicio de sesión fallido')`,
           [user.USUARIO_ID]
         );
       } catch (auditError) {
-        console.log('No se pudo registrar auditoría de intento fallido');
+        console.log('No se pudo registrar auditoría de intento fallido'+ auditError);
+        console.log(user.USUARIO_ID);
       }
 
       return NextResponse.json(

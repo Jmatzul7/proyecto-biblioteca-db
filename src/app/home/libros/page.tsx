@@ -1,4 +1,3 @@
-// app/home/libros/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,7 +34,7 @@ interface PaginationInfo {
 }
 
 export default function BooksPage() {
-  const { user } = useAuth(); // Obtener información del usuario
+  const { user } = useAuth();
   const [allBooks, setAllBooks] = useState<Book[]>([]);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [displayedBooks, setDisplayedBooks] = useState<Book[]>([]);

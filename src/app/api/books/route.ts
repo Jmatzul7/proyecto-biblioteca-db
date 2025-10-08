@@ -1,8 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import runQuery from '../../../lib/db/oracle';
+import runQuery from '@/lib/db/oracle';
 
-// Interfaces para los resultados de la base de datos
 interface Libro {
   LIBRO_ID: number;
   TITULO: string;
@@ -55,7 +54,7 @@ export async function GET(request: NextRequest) {
       binds.push(genero);
     }
 
-    // Consulta principal con cálculo CORRECTO de disponibilidad
+    // Consulta principal
     const libros = await runQuery(
       `SELECT 
         l.libro_id, 
@@ -73,7 +72,6 @@ export async function GET(request: NextRequest) {
                WHERE p.libro_id = l.libro_id 
                AND p.estado = 'PRESTADO'), 0)
         ) as copias_disponibles,
-        -- Información adicional útil
         (SELECT COUNT(*) FROM copias_libros cl WHERE cl.libro_id = l.libro_id) as total_copias_registradas,
         (SELECT COUNT(*) FROM copias_libros cl WHERE cl.libro_id = l.libro_id AND cl.estado_copia = 'DISPONIBLE') as copias_fisicas_disponibles
        FROM LIBROS l
@@ -84,7 +82,7 @@ export async function GET(request: NextRequest) {
       [...binds, offset, limit]
     );
 
-    // Aplicar filtro de disponibilidad en el código (más flexible)
+    // Aplicar filtro de disponibilidad en el código 
     let librosFiltrados = libros || [];
     
     if (disponibilidad === 'available') {
@@ -138,7 +136,7 @@ export async function GET(request: NextRequest) {
       pagination: {
         page,
         limit,
-        total: librosFiltrados.length, // Usar el total filtrado
+        total: librosFiltrados.length, 
         totalPages: Math.ceil(librosFiltrados.length / limit)
       }
     });
@@ -166,9 +164,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar año de publicación si se proporciona
-    if (anio_publicacion && (parseInt(anio_publicacion) < 1000 || parseInt(anio_publicacion) > new Date().getFullYear())) {
+    if (anio_publicacion && (parseInt(anio_publicacion) < 1900 || parseInt(anio_publicacion) > new Date().getFullYear())) {
       return NextResponse.json(
-        { success: false, message: 'El año de publicación debe ser válido' },
+        { success: false, message: 'El año de publicación debe ser mayor a 1900' },
         { status: 400 }
       );
     }
@@ -265,6 +263,16 @@ export async function POST(request: NextRequest) {
         { success: false, message: 'Error al recuperar el libro creado' },
         { status: 500 }
       );
+    }
+
+        // Registrar en auditoría
+    try {
+      await runQuery(
+        `INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle)
+         VALUES (SELECT NVL(MAX(evento_id), 0) + 1, 1, 'Creacion Nuevo Libro', 'Libro creado: ${titulo}')`
+      );
+    } catch (auditError) {
+      console.log('⚠️ No se pudo registrar auditoría');
     }
 
   const libro = libroCreado[0] as Libro;

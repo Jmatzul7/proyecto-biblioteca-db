@@ -36,7 +36,7 @@ export default function BookPagination({
   // Manejar cambio de items por página
   const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLimit = parseInt(e.target.value);
-    onPageChange(1, newLimit); // ← VOLVER A LA PÁGINA 1 CON EL NUEVO LÍMITE
+    onPageChange(1, newLimit);
   };
 
   if (totalPages <= 1) return null;

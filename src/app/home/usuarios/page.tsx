@@ -1,4 +1,3 @@
-// app/home/usuarios/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,7 +17,7 @@ interface User {
 }
 
 export default function UsuariosPage() {
-  const { user } = useAuth(); // Obtener información del usuario loggeado
+  const { user } = useAuth(); 
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);

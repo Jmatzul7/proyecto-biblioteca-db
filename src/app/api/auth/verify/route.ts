@@ -1,5 +1,3 @@
-// app/api/auth/verify/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
 
@@ -82,7 +80,7 @@ export async function GET(request: NextRequest) {
                           r.nombre_rol
                    FROM USUARIOS u 
                    INNER JOIN ROLES r ON u.rol_id = r.rol_id 
-                   WHERE u.usuario_id = :1`; // Sin validación de estado
+                   WHERE u.usuario_id = :1`;
       
       const users = await runQuery(sql, [userSession.usuario_id]);
       
@@ -110,7 +108,7 @@ export async function GET(request: NextRequest) {
         usuario_login: currentUser.USUARIO_LOGIN,
         rol_id: currentUser.ROL_ID,
         nombre_rol: currentUser.NOMBRE_ROL,
-        timestamp: Date.now() // Renovar timestamp
+        timestamp: Date.now()
       };
 
       // Devolver datos del usuario

@@ -1,8 +1,7 @@
-// src/app/api/env-debug/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  // Mostrar solo si las variables existen, no los valores reales por seguridad
+  // Mostrar solo si las variables existen,
   const envStatus = {
     DB_USER: process.env.DB_USER ? '✅ Definido' : '❌ Faltante',
     DB_PASSWORD: process.env.DB_PASSWORD ? '✅ Definido' : '❌ Faltante',

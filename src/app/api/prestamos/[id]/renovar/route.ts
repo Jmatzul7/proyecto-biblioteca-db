@@ -1,4 +1,3 @@
-// app/api/prestamos/[id]/renovar/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
 
@@ -89,7 +88,7 @@ export async function PUT(request: NextRequest) {
     const nuevaFechaDevolucion = new Date();
     nuevaFechaDevolucion.setDate(nuevaFechaDevolucion.getDate() + 15);
 
-    // 2. Actualizar el préstamo con nueva fecha de devolución
+    // Actualizar el préstamo con nueva fecha de devolución
     const updatePrestamoSql = `
       UPDATE PRESTAMOS 
       SET fecha_devolucion = TO_DATE(:1, 'YYYY-MM-DD')
@@ -101,11 +100,11 @@ export async function PUT(request: NextRequest) {
     console.log('🔄 Actualizando fecha de devolución...', { nuevaFecha: fechaFormateada });
     await runQuery(updatePrestamoSql, [fechaFormateada, prestamoIdNum]);
 
-    // 3. Registrar en auditoría
+    // Registrar en auditoría
     try {
       const auditoriaSql = `
         INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle)
-        VALUES (AUDITORIA_SEQ.NEXTVAL, 1, 'RENOVACION_PRESTAMO', 
+        VALUES (A(SELECT NVL(MAX(evento_id), 0) + 1 FROM AUDITORIA), 1, 'RENOVACION_PRESTAMO', 
                'Préstamo renovado ID: ${prestamoId} - Nueva fecha: ${fechaFormateada} - Libro: ${prestamo.TITULO}')
       `;
       await runQuery(auditoriaSql);
