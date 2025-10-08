@@ -14,27 +14,106 @@ interface TotalResult {
   TOTAL: number;
 }
 
-interface LibroPopular {
+interface LibroPopularDB {
   LIBRO_ID: number;
   TITULO: string;
   AUTOR: string;
+  NUM_COPIAS: number;
+  NOMBRE_GENERO: string;
   TOTAL_PRESTAMOS: number;
   COPIAS_DISPONIBLES: number;
-  NUM_COPIAS: number;
-  NOMBRE_GENERO: string;
 }
 
-interface LibroSinCopias {
+interface LibroSinCopiasDB {
   LIBRO_ID: number;
   TITULO: string;
   AUTOR: string;
-  COPIAS_DISPONIBLES: number;
   NUM_COPIAS: number;
   NOMBRE_GENERO: string;
+  COPIAS_DISPONIBLES: number;
   ULTIMO_PRESTAMO: string;
 }
 
-export async function GET(request: NextRequest) {
+interface LibroTendenciaDB {
+  LIBRO_ID: number;
+  TITULO: string;
+  AUTOR: string;
+  NUM_COPIAS: number;
+  NOMBRE_GENERO: string;
+  COPIAS_DISPONIBLES: number;
+  PRESTAMOS_RECIENTES: number;
+}
+
+// Interfaces para la respuesta formateada
+interface EstadisticasGenerales {
+  total_generos: number;
+  total_libros: number;
+  total_copias: number;
+  prestamos_activos: number;
+  libros_disponibles: number;
+  libros_agotados: number;
+  total_prestamos: number;
+  prestamos_mes_actual: number;
+  total_copias_sistema: number;
+  copias_disponibles: number;
+  copias_prestadas: number;
+}
+
+interface GeneroPopularFormateado {
+  genero_id: number;
+  nombre_genero: string;
+  total_libros: number;
+  total_copias: number;
+  total_prestamos: number;
+}
+
+interface LibroPopularFormateado {
+  libro_id: number;
+  titulo: string;
+  autor: string;
+  total_prestamos: number;
+  copias_disponibles: number;
+  num_copias: number;
+  nombre_genero: string;
+  porcentaje_disponibilidad: number;
+}
+
+interface LibroSinCopiasFormateado {
+  libro_id: number;
+  titulo: string;
+  autor: string;
+  copias_disponibles: number;
+  num_copias: number;
+  nombre_genero: string;
+  ultimo_prestamo: string;
+  estado: string;
+}
+
+interface LibroTendenciaFormateado {
+  libro_id: number;
+  titulo: string;
+  autor: string;
+  prestamos_recientes: number;
+  copias_disponibles: number;
+  num_copias: number;
+  nombre_genero: string;
+  tendencia: string;
+}
+
+interface StatisticsResponse {
+  estadisticas_generales: EstadisticasGenerales;
+  generos_populares: GeneroPopularFormateado[];
+  libros_populares: LibroPopularFormateado[];
+  libros_sin_copias: LibroSinCopiasFormateado[];
+  libros_tendencia: LibroTendenciaFormateado[];
+  resumen: {
+    total_libros_populares: number;
+    total_libros_agotados: number;
+    total_libros_tendencia: number;
+  };
+}
+
+export async function GET() { // Removemos request ya que no se usa
   try {
     // Consulta para géneros más populares
     const generosPopulares = await runQuery(
@@ -167,7 +246,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Formatear respuesta
-    const datosFormateados = {
+    const datosFormateados: StatisticsResponse = {
       estadisticas_generales: {
         total_generos: totalGeneros ? (totalGeneros[0] as TotalResult).TOTAL : 0,
         total_libros: totalLibros ? (totalLibros[0] as TotalResult).TOTAL : 0,
@@ -181,7 +260,7 @@ export async function GET(request: NextRequest) {
         copias_disponibles: copiasDisponibles ? (copiasDisponibles[0] as TotalResult).TOTAL : 0,
         copias_prestadas: copiasPrestadas ? (copiasPrestadas[0] as TotalResult).TOTAL : 0
       },
-      generos_populares: generosPopulares?.map((genero) => {
+      generos_populares: (generosPopulares || []).map((genero) => {
         const g = genero as GeneroPopular;
         return {
           genero_id: g.GENERO_ID,
@@ -191,8 +270,8 @@ export async function GET(request: NextRequest) {
           total_prestamos: g.TOTAL_PRESTAMOS
         };
       }),
-      libros_populares: librosPopulares?.map((libro) => {
-        const l = libro as any;
+      libros_populares: (librosPopulares || []).map((libro) => {
+        const l = libro as LibroPopularDB;
         return {
           libro_id: l.LIBRO_ID,
           titulo: l.TITULO,
@@ -206,8 +285,8 @@ export async function GET(request: NextRequest) {
             : 0
         };
       }),
-      libros_sin_copias: librosSinCopias?.map((libro) => {
-        const l = libro as any;
+      libros_sin_copias: (librosSinCopias || []).map((libro) => {
+        const l = libro as LibroSinCopiasDB;
         return {
           libro_id: l.LIBRO_ID,
           titulo: l.TITULO,
@@ -219,8 +298,8 @@ export async function GET(request: NextRequest) {
           estado: 'Agotado'
         };
       }),
-      libros_tendencia: librosTendencia?.map((libro) => {
-        const l = libro as any;
+      libros_tendencia: (librosTendencia || []).map((libro) => {
+        const l = libro as LibroTendenciaDB;
         return {
           libro_id: l.LIBRO_ID,
           titulo: l.TITULO,
