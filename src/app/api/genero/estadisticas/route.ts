@@ -17,7 +17,7 @@ interface TotalResult {
 interface LibroPopularDB {
   LIBRO_ID: number;
   TITULO: string;
-  AUTOR: string;
+  NOMBRE_AUTOR: string; // Cambiado de AUTOR a NOMBRE_AUTOR
   NUM_COPIAS: number;
   NOMBRE_GENERO: string;
   TOTAL_PRESTAMOS: number;
@@ -27,7 +27,7 @@ interface LibroPopularDB {
 interface LibroSinCopiasDB {
   LIBRO_ID: number;
   TITULO: string;
-  AUTOR: string;
+  NOMBRE_AUTOR: string; // Cambiado de AUTOR a NOMBRE_AUTOR
   NUM_COPIAS: number;
   NOMBRE_GENERO: string;
   COPIAS_DISPONIBLES: number;
@@ -37,14 +37,14 @@ interface LibroSinCopiasDB {
 interface LibroTendenciaDB {
   LIBRO_ID: number;
   TITULO: string;
-  AUTOR: string;
+  NOMBRE_AUTOR: string; // Cambiado de AUTOR a NOMBRE_AUTOR
   NUM_COPIAS: number;
   NOMBRE_GENERO: string;
   COPIAS_DISPONIBLES: number;
   PRESTAMOS_RECIENTES: number;
 }
 
-// Interfaces para la respuesta formateada
+// Interfaces para la respuesta formateada (MANTENIENDO LA MISMA ESTRUCTURA)
 interface EstadisticasGenerales {
   total_generos: number;
   total_libros: number;
@@ -70,7 +70,7 @@ interface GeneroPopularFormateado {
 interface LibroPopularFormateado {
   libro_id: number;
   titulo: string;
-  autor: string;
+  autor: string; // Mantenemos 'autor' para el frontend
   total_prestamos: number;
   copias_disponibles: number;
   num_copias: number;
@@ -81,7 +81,7 @@ interface LibroPopularFormateado {
 interface LibroSinCopiasFormateado {
   libro_id: number;
   titulo: string;
-  autor: string;
+  autor: string; // Mantenemos 'autor' para el frontend
   copias_disponibles: number;
   num_copias: number;
   nombre_genero: string;
@@ -92,7 +92,7 @@ interface LibroSinCopiasFormateado {
 interface LibroTendenciaFormateado {
   libro_id: number;
   titulo: string;
-  autor: string;
+  autor: string; // Mantenemos 'autor' para el frontend
   prestamos_recientes: number;
   copias_disponibles: number;
   num_copias: number;
@@ -113,7 +113,7 @@ interface StatisticsResponse {
   };
 }
 
-export async function GET() { // Removemos request ya que no se usa
+export async function GET() {
   try {
     // Consulta para géneros más populares
     const generosPopulares = await runQuery(
@@ -130,63 +130,68 @@ export async function GET() { // Removemos request ya que no se usa
        FETCH FIRST 10 ROWS ONLY`
     );
 
-    // Calcular copias disponibles para cada libro
+    // Calcular copias disponibles basado en LIBROS.num_copias - PRESTAMOS activos
     const copiasDisponiblesQuery = `
-      SELECT l.libro_id, 
-             COUNT(CASE WHEN cl.estado_copia = 'DISPONIBLE' THEN 1 END) as copias_disponibles
+      SELECT l.libro_id,
+             l.num_copias - 
+             (SELECT COUNT(*) 
+              FROM PRESTAMOS p 
+              WHERE p.libro_id = l.libro_id 
+              AND p.estado = 'PRESTADO') as copias_disponibles
       FROM LIBROS l
-      LEFT JOIN COPIAS_LIBROS cl ON l.libro_id = cl.libro_id
-      GROUP BY l.libro_id
     `;
 
-    // Libros más populares (con más préstamos)
+    // Libros más populares (con más préstamos) - ACTUALIZADO para usar AUTORES
     const librosPopulares = await runQuery(
-      `SELECT l.libro_id, l.titulo, l.autor, l.num_copias,
+      `SELECT l.libro_id, l.titulo, a.nombre_autor, l.num_copias,
               g.nombre_genero,
               COUNT(p.prestamo_id) as total_prestamos,
               cd.copias_disponibles
        FROM LIBROS l
        LEFT JOIN PRESTAMOS p ON l.libro_id = p.libro_id
        LEFT JOIN GENEROS g ON l.genero_id = g.genero_id
+       LEFT JOIN AUTORES a ON l.autor_id = a.autor_id  -- JOIN con AUTORES
        LEFT JOIN (${copiasDisponiblesQuery}) cd ON l.libro_id = cd.libro_id
-       GROUP BY l.libro_id, l.titulo, l.autor, l.num_copias, 
+       GROUP BY l.libro_id, l.titulo, a.nombre_autor, l.num_copias, 
                 g.nombre_genero, cd.copias_disponibles
        ORDER BY COUNT(p.prestamo_id) DESC, l.titulo ASC
        FETCH FIRST 10 ROWS ONLY`
     );
 
-    // Libros sin copias disponibles
+    // Libros sin copias disponibles - ACTUALIZADO para usar AUTORES
     const librosSinCopias = await runQuery(
-      `SELECT l.libro_id, l.titulo, l.autor, l.num_copias,
+      `SELECT l.libro_id, l.titulo, a.nombre_autor, l.num_copias,
               g.nombre_genero, cd.copias_disponibles,
               (SELECT MAX(fecha_prestamo) 
                FROM PRESTAMOS p 
                WHERE p.libro_id = l.libro_id) as ultimo_prestamo
        FROM LIBROS l
        LEFT JOIN GENEROS g ON l.genero_id = g.genero_id
+       LEFT JOIN AUTORES a ON l.autor_id = a.autor_id  -- JOIN con AUTORES
        LEFT JOIN (${copiasDisponiblesQuery}) cd ON l.libro_id = cd.libro_id
-       WHERE cd.copias_disponibles = 0 OR cd.copias_disponibles IS NULL
+       WHERE cd.copias_disponibles <= 0
        ORDER BY ultimo_prestamo DESC NULLS LAST, l.titulo ASC
        FETCH FIRST 10 ROWS ONLY`
     );
 
-    // Libros con más préstamos en el último mes
+    // Libros con más préstamos en el último mes - ACTUALIZADO para usar AUTORES
     const librosTendencia = await runQuery(
-      `SELECT l.libro_id, l.titulo, l.autor, l.num_copias,
+      `SELECT l.libro_id, l.titulo, a.nombre_autor, l.num_copias,
               g.nombre_genero, cd.copias_disponibles,
               COUNT(p.prestamo_id) as prestamos_recientes
        FROM LIBROS l
        LEFT JOIN PRESTAMOS p ON l.libro_id = p.libro_id
        LEFT JOIN GENEROS g ON l.genero_id = g.genero_id
+       LEFT JOIN AUTORES a ON l.autor_id = a.autor_id  -- JOIN con AUTORES
        LEFT JOIN (${copiasDisponiblesQuery}) cd ON l.libro_id = cd.libro_id
        WHERE p.fecha_prestamo >= ADD_MONTHS(SYSDATE, -1)
-       GROUP BY l.libro_id, l.titulo, l.autor, l.num_copias, 
+       GROUP BY l.libro_id, l.titulo, a.nombre_autor, l.num_copias, 
                 g.nombre_genero, cd.copias_disponibles
        ORDER BY COUNT(p.prestamo_id) DESC, l.titulo ASC
        FETCH FIRST 8 ROWS ONLY`
     );
 
-    // Estadísticas generales
+    // Estadísticas generales (sin cambios)
     const totalGeneros = await runQuery(
       'SELECT COUNT(*) as total FROM GENEROS'
     );
@@ -203,22 +208,28 @@ export async function GET() { // Removemos request ya que no se usa
       `SELECT COUNT(*) as total FROM PRESTAMOS WHERE estado = 'PRESTADO'`
     );
 
-    // Calcular libros disponibles basado en COPIAS_LIBROS
+    // Calcular libros disponibles basado en LIBROS.num_copias vs PRESTAMOS activos
     const librosDisponibles = await runQuery(
-      `SELECT COUNT(DISTINCT l.libro_id) as total 
+      `SELECT COUNT(*) as total 
        FROM LIBROS l
-       JOIN COPIAS_LIBROS cl ON l.libro_id = cl.libro_id
-       WHERE cl.estado_copia = 'DISPONIBLE'`
+       WHERE l.num_copias > (
+         SELECT COUNT(*) 
+         FROM PRESTAMOS p 
+         WHERE p.libro_id = l.libro_id 
+         AND p.estado = 'PRESTADO'
+       )`
     );
 
+    // Calcular libros agotados basado en LIBROS.num_copias vs PRESTAMOS activos
     const librosAgotados = await runQuery(
-      `SELECT COUNT(DISTINCT l.libro_id) as total 
+      `SELECT COUNT(*) as total 
        FROM LIBROS l
-       WHERE l.libro_id NOT IN (
-         SELECT DISTINCT libro_id 
-         FROM COPIAS_LIBROS 
-         WHERE estado_copia = 'DISPONIBLE'
-       )`
+       WHERE l.num_copias <= (
+         SELECT COUNT(*) 
+         FROM PRESTAMOS p 
+         WHERE p.libro_id = l.libro_id 
+         AND p.estado = 'PRESTADO'
+       ) OR l.num_copias = 0`
     );
 
     // Estadísticas de préstamos
@@ -232,20 +243,24 @@ export async function GET() { // Removemos request ya que no se usa
        AND EXTRACT(YEAR FROM fecha_prestamo) = EXTRACT(YEAR FROM SYSDATE)`
     );
 
-    // Estadísticas de copias
+    // Estadísticas de copias (basado en LIBROS.num_copias)
     const totalCopiasSistema = await runQuery(
-      'SELECT COUNT(*) as total FROM COPIAS_LIBROS'
+      'SELECT COALESCE(SUM(num_copias), 0) as total FROM LIBROS'
     );
 
+    // Calcular copias disponibles (total copias - préstamos activos)
     const copiasDisponibles = await runQuery(
-      `SELECT COUNT(*) as total FROM COPIAS_LIBROS WHERE estado_copia = 'DISPONIBLE'`
+      `SELECT 
+         (SELECT COALESCE(SUM(num_copias), 0) FROM LIBROS) - 
+         (SELECT COUNT(*) FROM PRESTAMOS WHERE estado = 'PRESTADO') as total
+       FROM DUAL`
     );
 
     const copiasPrestadas = await runQuery(
-      `SELECT COUNT(*) as total FROM COPIAS_LIBROS WHERE estado_copia = 'PRESTADO'`
+      'SELECT COUNT(*) as total FROM PRESTAMOS WHERE estado = \'PRESTADO\''
     );
 
-    // Formatear respuesta
+    // Formatear respuesta (manteniendo la misma estructura para el frontend)
     const datosFormateados: StatisticsResponse = {
       estadisticas_generales: {
         total_generos: totalGeneros ? (totalGeneros[0] as TotalResult).TOTAL : 0,
@@ -272,16 +287,17 @@ export async function GET() { // Removemos request ya que no se usa
       }),
       libros_populares: (librosPopulares || []).map((libro) => {
         const l = libro as LibroPopularDB;
+        const copiasDisponibles = l.COPIAS_DISPONIBLES || 0;
         return {
           libro_id: l.LIBRO_ID,
           titulo: l.TITULO,
-          autor: l.AUTOR,
+          autor: l.NOMBRE_AUTOR, // Mapeamos NOMBRE_AUTOR a autor
           total_prestamos: l.TOTAL_PRESTAMOS,
-          copias_disponibles: l.COPIAS_DISPONIBLES || 0,
+          copias_disponibles: copiasDisponibles > 0 ? copiasDisponibles : 0,
           num_copias: l.NUM_COPIAS,
           nombre_genero: l.NOMBRE_GENERO,
           porcentaje_disponibilidad: l.NUM_COPIAS > 0 
-            ? Math.round(((l.COPIAS_DISPONIBLES || 0) / l.NUM_COPIAS) * 100) 
+            ? Math.round((copiasDisponibles / l.NUM_COPIAS) * 100) 
             : 0
         };
       }),
@@ -290,7 +306,7 @@ export async function GET() { // Removemos request ya que no se usa
         return {
           libro_id: l.LIBRO_ID,
           titulo: l.TITULO,
-          autor: l.AUTOR,
+          autor: l.NOMBRE_AUTOR, // Mapeamos NOMBRE_AUTOR a autor
           copias_disponibles: l.COPIAS_DISPONIBLES || 0,
           num_copias: l.NUM_COPIAS,
           nombre_genero: l.NOMBRE_GENERO,
@@ -300,12 +316,13 @@ export async function GET() { // Removemos request ya que no se usa
       }),
       libros_tendencia: (librosTendencia || []).map((libro) => {
         const l = libro as LibroTendenciaDB;
+        const copiasDisponibles = l.COPIAS_DISPONIBLES || 0;
         return {
           libro_id: l.LIBRO_ID,
           titulo: l.TITULO,
-          autor: l.AUTOR,
+          autor: l.NOMBRE_AUTOR, // Mapeamos NOMBRE_AUTOR a autor
           prestamos_recientes: l.PRESTAMOS_RECIENTES,
-          copias_disponibles: l.COPIAS_DISPONIBLES || 0,
+          copias_disponibles: copiasDisponibles > 0 ? copiasDisponibles : 0,
           num_copias: l.NUM_COPIAS,
           nombre_genero: l.NOMBRE_GENERO,
           tendencia: 'popular'

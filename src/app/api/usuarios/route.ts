@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { nombre, usuario_login, contrasena, rol_id } = body;
 
-    console.log('📦 Datos recibidos para nuevo usuario:', { nombre, usuario_login, rol_id });
+    //console.log('📦 Datos recibidos para nuevo usuario:', { nombre, usuario_login, rol_id });
 
     // Validaciones básicas
     if (!nombre || !usuario_login || !contrasena) {

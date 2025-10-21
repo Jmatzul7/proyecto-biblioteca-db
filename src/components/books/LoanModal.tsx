@@ -6,16 +6,32 @@ import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import ErrorAlert from '@/components/ui/ErrorAlert';
 
+interface Autor {
+  autor_id: string;
+  nombre_autor: string;
+  nacionalidad: string;
+}
+
+interface Editorial {
+  editorial_id: string;
+  nombre_editorial: string;
+}
+
+interface Genero {
+  genero_id: string;
+  nombre_genero: string;
+}
+
 interface Book {
   libro_id: string;
   titulo: string;
-  autor: string;
+  autor: Autor; // Cambiado de string a objeto Autor
+  editorial: Editorial | null; // Nuevo campo
   anio_publicacion: string;
   num_copias: string;
   copias_disponibles: string;
-  genero: {
-    nombre_genero: string;
-  };
+  genero: Genero;
+  isbn?: string; // Nuevo campo opcional
 }
 
 interface Usuario {
@@ -173,7 +189,7 @@ export default function LoanModal({ isOpen, onClose, onLoanCreated, book }: Loan
           </button>
         </div>
 
-        {/* Información del libro */}
+        {/* Información del libro - Actualizada */}
         <div className="p-6 bg-white/5 border-b border-white/20">
           <h3 className="text-lg font-semibold text-white mb-3">Libro seleccionado</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -183,13 +199,32 @@ export default function LoanModal({ isOpen, onClose, onLoanCreated, book }: Loan
             </div>
             <div>
               <span className="text-blue-300">Autor:</span>
-              <p className="text-white">{book.autor}</p>
+              <p className="text-white">{book.autor.nombre_autor}</p>
+              {book.autor.nacionalidad && (
+                <p className="text-blue-200 text-xs">({book.autor.nacionalidad})</p>
+              )}
             </div>
             <div>
               <span className="text-blue-300">Género:</span>
               <p className="text-white">{book.genero.nombre_genero}</p>
             </div>
+            {book.editorial && (
+              <div>
+                <span className="text-blue-300">Editorial:</span>
+                <p className="text-white">{book.editorial.nombre_editorial}</p>
+              </div>
+            )}
             <div>
+              <span className="text-blue-300">Año:</span>
+              <p className="text-white">{book.anio_publicacion || 'N/A'}</p>
+            </div>
+            {book.isbn && (
+              <div>
+                <span className="text-blue-300">ISBN:</span>
+                <p className="text-white text-xs font-mono">{book.isbn}</p>
+              </div>
+            )}
+            <div className="md:col-span-2">
               <span className="text-blue-300">Copias disponibles:</span>
               <p className={`font-semibold ${parseInt(book.copias_disponibles) > 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {book.copias_disponibles} de {book.num_copias}
@@ -204,7 +239,6 @@ export default function LoanModal({ isOpen, onClose, onLoanCreated, book }: Loan
 
           <div className="space-y-6">
             {/* Selección de usuario */}
-         
             <Select
               id="usuario_id"
               name="usuario_id"
@@ -218,12 +252,10 @@ export default function LoanModal({ isOpen, onClose, onLoanCreated, book }: Loan
               required
               label="Usuario *"
               className="text-gray-800"
-              
             />
 
             {/* Fecha de devolución */}
             <Input
-              disabled
               id="fecha_devolucion"
               name="fecha_devolucion"
               type="date"

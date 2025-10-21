@@ -143,7 +143,7 @@ export async function PUT(request: NextRequest) {
     const id = urlParts[urlParts.length - 1];
     const libroId = Number(id);
     const body = await request.json();
-    const { num_copias } = body; // ✅ Solo queremos actualizar este campo
+    const { num_copias } = body; 
 
     if (!libroId || num_copias === undefined) {
       return NextResponse.json(
@@ -195,7 +195,7 @@ export async function PUT(request: NextRequest) {
     try {
       await runQuery(
         `INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle)
-         VALUES (AUDITORIA_SEQ.NEXTVAL, 1, 'ACTUALIZAR_COPIAS', 'Actualizó num_copias del libro ID: ${libroId}')`
+         VALUES ((SELECT NVL(MAX(evento_id), 0) + 1 FROM AUDITORIA), 1, 'ACTUALIZAR_COPIAS', 'Actualizó num_copias del libro ID: ${libroId}')`
       );
     } catch (auditError) {
       console.warn('⚠️ No se pudo registrar en auditoría');
@@ -293,7 +293,7 @@ export async function DELETE(request: NextRequest) {
     try {
       await runQuery(
         `INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle)
-         VALUES (AUDITORIA_SEQ.NEXTVAL, 1, 'ELIMINAR_LIBRO', 'Libro eliminado: ${tituloLibro}')`
+         VALUES ((SELECT NVL(MAX(evento_id), 0) + 1 FROM AUDITORIA), 1, 'ELIMINAR_LIBRO', 'Libro eliminado: ${tituloLibro}')`
       );
     } catch (auditError) {
       console.log('⚠️ No se pudo registrar auditoría');

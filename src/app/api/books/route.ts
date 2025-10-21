@@ -1,15 +1,19 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '@/lib/db/oracle';
 
 interface Libro {
   LIBRO_ID: number;
   TITULO: string;
-  AUTOR: string;
+  AUTOR_ID: number;
+  NOMBRE_AUTOR: string;
+  AUTOR_NACIONALIDAD: string;
+  EDITORIAL_ID: number;
+  NOMBRE_EDITORIAL: string;
   ANIO_PUBLICACION: number;
   NUM_COPIAS: number;
   FECHA_REGISTRO: string;
   URL_IMAGEN?: string;
+  ISBN?: string;
   GENERO_ID: number;
   NOMBRE_GENERO: string;
   COPIAS_DISPONIBLES: number;
@@ -36,16 +40,18 @@ export async function GET(request: NextRequest) {
     const limit = Number(searchParams.get('limit')) || 10;
     const search = searchParams.get('search') || '';
     const genero = searchParams.get('genero') || '';
+    const autor = searchParams.get('autor') || '';
+    const editorial = searchParams.get('editorial') || '';
     const disponibilidad = searchParams.get('disponibilidad') || '';
 
     const offset = (page - 1) * limit;
 
     // Construir consulta dinámica
     let whereClause = '';
-  const binds: string[] = [];
+    const binds: string[] = [];
 
     if (search) {
-      whereClause += ` AND (l.titulo LIKE '%' || :${binds.length + 1} || '%' OR l.autor LIKE '%' || :${binds.length + 1} || '%')`;
+      whereClause += ` AND (l.titulo LIKE '%' || :${binds.length + 1} || '%' OR a.nombre_autor LIKE '%' || :${binds.length + 1} || '%')`;
       binds.push(search);
     }
 
@@ -54,16 +60,31 @@ export async function GET(request: NextRequest) {
       binds.push(genero);
     }
 
-    // Consulta principal
+    if (autor) {
+      whereClause += ` AND a.nombre_autor = :${binds.length + 1}`;
+      binds.push(autor);
+    }
+
+    if (editorial) {
+      whereClause += ` AND e.nombre_editorial = :${binds.length + 1}`;
+      binds.push(editorial);
+    }
+
+    // Consulta principal actualizada con JOIN a autores y editoriales
     const libros = await runQuery(
       `SELECT 
         l.libro_id, 
         l.titulo, 
-        l.autor, 
+        l.autor_id,
+        a.nombre_autor,
+        a.nacionalidad as autor_nacionalidad,
+        l.editorial_id,
+        e.nombre_editorial,
         l.anio_publicacion, 
         l.num_copias,
         l.fecha_registro, 
         l.url_imagen,
+        l.isbn,
         g.genero_id, 
         g.nombre_genero,
         -- Cálculo CORRECTO: copias totales - copias prestadas
@@ -75,7 +96,9 @@ export async function GET(request: NextRequest) {
         (SELECT COUNT(*) FROM copias_libros cl WHERE cl.libro_id = l.libro_id) as total_copias_registradas,
         (SELECT COUNT(*) FROM copias_libros cl WHERE cl.libro_id = l.libro_id AND cl.estado_copia = 'DISPONIBLE') as copias_fisicas_disponibles
        FROM LIBROS l
-       LEFT JOIN GENEROS g ON l.genero_id = g.genero_id
+       JOIN autores a ON l.autor_id = a.autor_id
+       LEFT JOIN editoriales e ON l.editorial_id = e.editorial_id
+       JOIN generos g ON l.genero_id = g.genero_id
        WHERE 1=1 ${whereClause}
        ORDER BY l.fecha_registro DESC
        OFFSET :${binds.length + 1} ROWS FETCH NEXT :${binds.length + 2} ROWS ONLY`,
@@ -99,12 +122,14 @@ export async function GET(request: NextRequest) {
     const totalResult = await runQuery(
       `SELECT COUNT(*) as total
        FROM LIBROS l
-       LEFT JOIN GENEROS g ON l.genero_id = g.genero_id
+       JOIN autores a ON l.autor_id = a.autor_id
+       LEFT JOIN editoriales e ON l.editorial_id = e.editorial_id
+       JOIN generos g ON l.genero_id = g.genero_id
        WHERE 1=1 ${whereClause}`,
       binds
     );
 
-  const total = totalResult ? (totalResult[0] as TotalResult).TOTAL : 0;
+    const total = totalResult ? (totalResult[0] as TotalResult).TOTAL : 0;
 
     // Formatear respuesta
     const librosFormateados = librosFiltrados.map((libro) => {
@@ -112,11 +137,20 @@ export async function GET(request: NextRequest) {
       return {
         libro_id: l.LIBRO_ID?.toString(),
         titulo: l.TITULO,
-        autor: l.AUTOR,
+        autor: {
+          autor_id: l.AUTOR_ID?.toString(),
+          nombre_autor: l.NOMBRE_AUTOR,
+          nacionalidad: l.AUTOR_NACIONALIDAD
+        },
+        editorial: l.EDITORIAL_ID ? {
+          editorial_id: l.EDITORIAL_ID?.toString(),
+          nombre_editorial: l.NOMBRE_EDITORIAL
+        } : null,
         anio_publicacion: l.ANIO_PUBLICACION?.toString(),
         num_copias: l.NUM_COPIAS?.toString(),
         fecha_registro: l.FECHA_REGISTRO,
         url_imagen: l.URL_IMAGEN,
+        isbn: l.ISBN,
         genero: {
           genero_id: l.GENERO_ID?.toString(),
           nombre_genero: l.NOMBRE_GENERO
@@ -153,14 +187,51 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Obtener los datos del cuerpo de la solicitud
-    const { titulo, autor, anio_publicacion, genero_id, num_copias, url_imagen } = await request.json();
+    const { 
+      titulo, 
+      autor_id, 
+      editorial_id, 
+      anio_publicacion, 
+      genero_id, 
+      num_copias, 
+      url_imagen,
+      isbn 
+    } = await request.json();
 
     // Validaciones básicas
-    if (!titulo || !autor) {
+    if (!titulo || !autor_id) {
       return NextResponse.json(
         { success: false, message: 'Título y autor son obligatorios' },
         { status: 400 }
       );
+    }
+
+    // Validar que el autor existe
+    const autorExists = await runQuery(
+      `SELECT 1 FROM autores WHERE autor_id = :1`,
+      [parseInt(autor_id)]
+    );
+
+    if (!autorExists || autorExists.length === 0) {
+      return NextResponse.json(
+        { success: false, message: 'El autor seleccionado no existe' },
+        { status: 400 }
+      );
+    }
+
+    // Validar que la editorial existe si se proporciona
+    if (editorial_id) {
+      const editorialExists = await runQuery(
+        `SELECT 1 FROM editoriales WHERE editorial_id = :1`,
+        [parseInt(editorial_id)]
+      );
+
+      if (!editorialExists || editorialExists.length === 0) {
+        return NextResponse.json(
+          { success: false, message: 'La editorial seleccionada no existe' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validar año de publicación si se proporciona
@@ -183,32 +254,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-  const nextId = (idResult[0] as NextIdResult).NEXT_ID;
+    const nextId = (idResult[0] as NextIdResult).NEXT_ID;
 
     // Insertar el nuevo libro
     const insertSql = `
       INSERT INTO LIBROS (
         LIBRO_ID, 
         TITULO, 
-        AUTOR, 
+        AUTOR_ID,
+        EDITORIAL_ID,
         ANIO_PUBLICACION, 
         GENERO_ID, 
         NUM_COPIAS, 
         FECHA_REGISTRO, 
-        URL_IMAGEN
+        URL_IMAGEN,
+        ISBN
       ) VALUES (
-        :1, :2, :3, :4, :5, :6, SYSDATE, :7
+        :1, :2, :3, :4, :5, :6, :7, SYSDATE, :8, :9
       )
     `;
 
     const insertBinds = [
       nextId,
       titulo.trim(),
-      autor.trim(),
+      parseInt(autor_id),
+      editorial_id ? parseInt(editorial_id) : null,
       anio_publicacion ? parseInt(anio_publicacion) : null,
       genero_id ? parseInt(genero_id) : null,
       num_copias ? parseInt(num_copias) : 1,
-      url_imagen || null
+      url_imagen || null,
+      isbn || null
     ];
 
     await runQuery(insertSql, insertBinds);
@@ -223,7 +298,7 @@ export async function POST(request: NextRequest) {
       );
       
       if (copiaIdResult && copiaIdResult.length > 0) {
-  let nextCopiaId = (copiaIdResult[0] as NextCopiaIdResult).NEXT_COPIA_ID;
+        let nextCopiaId = (copiaIdResult[0] as NextCopiaIdResult).NEXT_COPIA_ID;
 
         // Crear cada copia individual
         for (let i = 0; i < numCopias; i++) {
@@ -243,17 +318,24 @@ export async function POST(request: NextRequest) {
       `SELECT 
         l.LIBRO_ID,
         l.TITULO,
-        l.AUTOR,
+        l.AUTOR_ID,
+        a.nombre_autor,
+        a.nacionalidad as autor_nacionalidad,
+        l.EDITORIAL_ID,
+        e.nombre_editorial,
         l.ANIO_PUBLICACION,
         l.NUM_COPIAS,
         l.FECHA_REGISTRO,
         l.URL_IMAGEN,
+        l.ISBN,
         g.GENERO_ID,
         g.NOMBRE_GENERO,
         -- CÁLCULO CORREGIDO: Usar NUM_COPIAS directamente (ya que es un libro nuevo sin préstamos)
         l.NUM_COPIAS as COPIAS_DISPONIBLES
        FROM LIBROS l
-       LEFT JOIN GENEROS g ON l.GENERO_ID = g.GENERO_ID
+       JOIN autores a ON l.autor_id = a.autor_id
+       LEFT JOIN editoriales e ON l.editorial_id = e.editorial_id
+       JOIN generos g ON l.genero_id = g.genero_id
        WHERE l.LIBRO_ID = :1`,
       [nextId]
     );
@@ -265,27 +347,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-        // Registrar en auditoría
+    // Registrar en auditoría
     try {
       await runQuery(
         `INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle)
-         VALUES (SELECT NVL(MAX(evento_id), 0) + 1, 1, 'Creacion Nuevo Libro', 'Libro creado: ${titulo}')`
+         VALUES ((SELECT NVL(MAX(evento_id), 0) + 1 FROM AUDITORIA), 1, 'Creacion Nuevo Libro', 'Libro creado: ${titulo}')`
       );
     } catch (auditError) {
       console.log('⚠️ No se pudo registrar auditoría');
     }
 
-  const libro = libroCreado[0] as Libro;
+    const libro = libroCreado[0] as Libro;
 
     // Formatear respuesta
     const libroFormateado = {
       libro_id: libro.LIBRO_ID?.toString(),
       titulo: libro.TITULO,
-      autor: libro.AUTOR,
+      autor: {
+        autor_id: libro.AUTOR_ID?.toString(),
+        nombre_autor: libro.NOMBRE_AUTOR,
+        nacionalidad: libro.AUTOR_NACIONALIDAD
+      },
+      editorial: libro.EDITORIAL_ID ? {
+        editorial_id: libro.EDITORIAL_ID?.toString(),
+        nombre_editorial: libro.NOMBRE_EDITORIAL
+      } : null,
       anio_publicacion: libro.ANIO_PUBLICACION?.toString(),
       num_copias: libro.NUM_COPIAS?.toString(),
       fecha_registro: libro.FECHA_REGISTRO,
       url_imagen: libro.URL_IMAGEN,
+      isbn: libro.ISBN,
       genero: {
         genero_id: libro.GENERO_ID?.toString(),
         nombre_genero: libro.NOMBRE_GENERO
@@ -309,9 +400,9 @@ export async function POST(request: NextRequest) {
       if (errMsg.includes('ORA-00001')) {
         errorMessage = 'Ya existe un libro con ese título';
       }
-      // Error de foreign key (género no existe)
+      // Error de foreign key (género/autor/editorial no existe)
       else if (errMsg.includes('ORA-02291')) {
-        errorMessage = 'El género seleccionado no existe';
+        errorMessage = 'El género, autor o editorial seleccionado no existe';
       }
       // Error de datos inválidos
       else if (errMsg.includes('ORA-01722')) {

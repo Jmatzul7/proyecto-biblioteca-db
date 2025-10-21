@@ -10,20 +10,35 @@ import LoanModal from '@/components/books/LoanModal';
 import BookPagination from '@/components/books/BookPagination';
 import UpdateCopiesModal from '@/components/books/UpdateCopiesModal';
 
+interface Autor {
+  autor_id: string;
+  nombre_autor: string;
+  nacionalidad: string;
+}
+
+interface Editorial {
+  editorial_id: string;
+  nombre_editorial: string;
+}
+
+interface Genero {
+  genero_id: string;
+  nombre_genero: string;
+}
+
 interface Book {
   usuario_id: string;
   libro_id: string;
   titulo: string;
-  autor: string;
+  autor: Autor; // Cambiado de string a objeto Autor
+  editorial: Editorial | null; // Nuevo campo
   anio_publicacion: string;
   num_copias: string;
   fecha_registro: string;
-  genero: {
-    genero_id: string;
-    nombre_genero: string;
-  };
+  genero: Genero;
   copias_disponibles: string;
   url_imagen: string | null;
+  isbn?: string; // Nuevo campo opcional
 }
 
 interface PaginationInfo {
@@ -41,6 +56,8 @@ export default function BooksPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
+  const [selectedAutor, setSelectedAutor] = useState(''); // Nuevo filtro
+  const [selectedEditorial, setSelectedEditorial] = useState(''); // Nuevo filtro
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
@@ -59,7 +76,6 @@ export default function BooksPage() {
   const isAdmin = user?.nombre_rol === 'Administrador';
   
   // Verificar si el usuario es bibliotecario o administrador
-  //const isStaff = user && (user.nombre_rol === 'Administrador' || user.nombre_rol === 'Bibliotecario');
   const isStaff = user ? (user.nombre_rol === 'Administrador' || user.nombre_rol === 'Bibliotecario') : false;
 
   // Cargar TODOS los libros al montar el componente
@@ -70,7 +86,7 @@ export default function BooksPage() {
   // Aplicar filtros cuando cambien los criterios de búsqueda
   useEffect(() => {
     applyFilters();
-  }, [allBooks, searchTerm, selectedGenre, availabilityFilter]);
+  }, [allBooks, searchTerm, selectedGenre, selectedAutor, selectedEditorial, availabilityFilter]);
 
   // Actualizar libros mostrados cuando cambie la paginación o los libros filtrados
   useEffect(() => {
@@ -105,14 +121,25 @@ export default function BooksPage() {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(book =>
         book.titulo.toLowerCase().includes(searchLower) ||
-        book.autor.toLowerCase().includes(searchLower) ||
-        book.genero.nombre_genero.toLowerCase().includes(searchLower)
+        book.autor.nombre_autor.toLowerCase().includes(searchLower) || // Actualizado
+        book.genero.nombre_genero.toLowerCase().includes(searchLower) ||
+        (book.editorial?.nombre_editorial.toLowerCase().includes(searchLower) || false) // Nuevo filtro por editorial
       );
     }
 
     // Filtrar por género
     if (selectedGenre) {
       filtered = filtered.filter(book => book.genero.nombre_genero === selectedGenre);
+    }
+
+    // Filtrar por autor
+    if (selectedAutor) {
+      filtered = filtered.filter(book => book.autor.nombre_autor === selectedAutor);
+    }
+
+    // Filtrar por editorial
+    if (selectedEditorial) {
+      filtered = filtered.filter(book => book.editorial?.nombre_editorial === selectedEditorial);
     }
 
     // Filtrar por disponibilidad
@@ -160,6 +187,14 @@ export default function BooksPage() {
     setSelectedGenre(genre);
   };
 
+  const handleAutorChange = (autor: string) => {
+    setSelectedAutor(autor);
+  };
+
+  const handleEditorialChange = (editorial: string) => {
+    setSelectedEditorial(editorial);
+  };
+
   const handleAvailabilityChange = (availability: string) => {
     setAvailabilityFilter(availability);
   };
@@ -204,6 +239,12 @@ export default function BooksPage() {
 
   // Obtener géneros únicos para el filtro
   const uniqueGenres = [...new Set(allBooks.map(book => book.genero.nombre_genero))];
+  
+  // Obtener autores únicos para el filtro
+  const uniqueAutores = [...new Set(allBooks.map(book => book.autor.nombre_autor))].sort();
+  
+  // Obtener editoriales únicas para el filtro
+  const uniqueEditoriales = [...new Set(allBooks.map(book => book.editorial?.nombre_editorial).filter(Boolean))].sort();
 
   const handleBookAdded = () => {
     fetchAllBooks();
@@ -214,6 +255,8 @@ export default function BooksPage() {
     total: allBooks.length,
     available: allBooks.filter(book => parseInt(book.copias_disponibles) > 0).length,
     genres: uniqueGenres.length,
+    autores: uniqueAutores.length, // Nueva estadística
+    editoriales: uniqueEditoriales.length, // Nueva estadística
     filtered: filteredBooks.length
   };
 
@@ -245,27 +288,35 @@ export default function BooksPage() {
           )}
         </div>
 
-        {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-center border border-white/20">
-            <div className="text-3xl font-bold text-cyan-400 mb-2">{stats.total}</div>
-            <div className="text-blue-200">Total de libros</div>
+        {/* Estadísticas - Actualizadas */}
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20">
+            <div className="text-2xl font-bold text-cyan-400 mb-1">{stats.total}</div>
+            <div className="text-blue-200 text-sm">Total libros</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-center border border-white/20">
-            <div className="text-3xl font-bold text-green-400 mb-2">{stats.available}</div>
-            <div className="text-blue-200">Disponibles</div>
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20">
+            <div className="text-2xl font-bold text-green-400 mb-1">{stats.available}</div>
+            <div className="text-blue-200 text-sm">Disponibles</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-center border border-white/20">
-            <div className="text-3xl font-bold text-purple-400 mb-2">{stats.genres}</div>
-            <div className="text-blue-200">Géneros</div>
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20">
+            <div className="text-2xl font-bold text-purple-400 mb-1">{stats.genres}</div>
+            <div className="text-blue-200 text-sm">Géneros</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-center border border-white/20">
-            <div className="text-3xl font-bold text-yellow-400 mb-2">{stats.filtered}</div>
-            <div className="text-blue-200">Resultados</div>
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20">
+            <div className="text-2xl font-bold text-yellow-400 mb-1">{stats.autores}</div>
+            <div className="text-blue-200 text-sm">Autores</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20">
+            <div className="text-2xl font-bold text-pink-400 mb-1">{stats.editoriales}</div>
+            <div className="text-blue-200 text-sm">Editoriales</div>
+          </div>
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20">
+            <div className="text-2xl font-bold text-orange-400 mb-1">{stats.filtered}</div>
+            <div className="text-blue-200 text-sm">Resultados</div>
           </div>
         </div>
 
-        {/* Barra de búsqueda y filtros */}
+        {/* Barra de búsqueda y filtros - Actualizada */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-8 border border-white/20">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             <div className="flex-1 w-full lg:max-w-md">
@@ -277,18 +328,26 @@ export default function BooksPage() {
             <BookFilters
               selectedGenre={selectedGenre}
               onGenreChange={handleGenreChange}
+              selectedAutor={selectedAutor} // Nuevo prop
+              onAutorChange={handleAutorChange} // Nuevo prop
+              selectedEditorial={selectedEditorial} // Nuevo prop
+              onEditorialChange={handleEditorialChange} // Nuevo prop
               availabilityFilter={availabilityFilter}
               onAvailabilityChange={handleAvailabilityChange}
               genres={uniqueGenres}
+              autores={uniqueAutores} // Nuevo prop
+              editoriales={uniqueEditoriales} // Nuevo prop
             />
           </div>
 
-          {/* Resultados de búsqueda */}
-          {(searchTerm || selectedGenre || availabilityFilter !== 'all') && (
+          {/* Resultados de búsqueda - Actualizado */}
+          {(searchTerm || selectedGenre || selectedAutor || selectedEditorial || availabilityFilter !== 'all') && (
             <div className="mt-4 text-blue-200">
               {stats.filtered} resultados 
               {searchTerm && ` para "${searchTerm}"`}
               {selectedGenre && ` en ${selectedGenre}`}
+              {selectedAutor && ` de ${selectedAutor}`}
+              {selectedEditorial && ` por ${selectedEditorial}`}
               {availabilityFilter !== 'all' && ` (${availabilityFilter === 'available' ? 'Disponibles' : 'No disponibles'})`}
             </div>
           )}
@@ -323,7 +382,7 @@ export default function BooksPage() {
           </div>
         )}
 
-        {/* Modal para agregar libro */}
+        {/* Modal para agregar libro - Se debe actualizar también */}
         <AddBookModal 
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}

@@ -5,15 +5,31 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import ErrorAlert from '@/components/ui/ErrorAlert';
 
+interface Autor {
+  autor_id: string;
+  nombre_autor: string;
+  nacionalidad: string;
+}
+
+interface Editorial {
+  editorial_id: string;
+  nombre_editorial: string;
+}
+
+interface Genero {
+  genero_id: string;
+  nombre_genero: string;
+}
+
 interface Book {
   libro_id: string;
   titulo: string;
-  autor: string;
+  autor: Autor; // Cambiado de string a objeto Autor
+  editorial: Editorial | null; // Nuevo campo
   num_copias: string;
   copias_disponibles: string;
-  genero: {
-    nombre_genero: string;
-  };
+  genero: Genero;
+  isbn?: string; // Nuevo campo opcional
 }
 
 interface UpdateCopiesModalProps {
@@ -67,7 +83,7 @@ export default function UpdateCopiesModal({ isOpen, onClose, onCopiesUpdated, bo
       // Verificar que no se reduzcan las copias por debajo de los préstamos activos
       const prestamosActivos = parseInt(book.num_copias) - parseInt(book.copias_disponibles);
       if (nuevasCopias < prestamosActivos) {
-        setError(`No puedes reducir a menos de ${prestamosActivos} copias. Hay ${prestamosActivos} préstamos activos.`);
+        setError(`No puedes reducir a menos de ${prestamosActivos} copias. Hay ${prestamosActivos} préstamo(s) activo(s).`);
         setLoading(false);
         return;
       }
@@ -159,10 +175,21 @@ export default function UpdateCopiesModal({ isOpen, onClose, onCopiesUpdated, bo
 
         {/* Contenido con scroll */}
         <div className="flex-1 overflow-y-auto">
-          {/* Información del libro */}
+          {/* Información del libro - Actualizada */}
           <div className="p-6 border-b border-white/20">
             <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">{book.titulo}</h3>
-            <p className="text-blue-200 text-sm">por {book.autor}</p>
+            <div className="space-y-1 text-sm">
+              <p className="text-blue-200">por <span className="text-white">{book.autor.nombre_autor}</span></p>
+              {book.autor.nacionalidad && (
+                <p className="text-blue-300 text-xs">({book.autor.nacionalidad})</p>
+              )}
+              {book.editorial && (
+                <p className="text-blue-200">Editorial: <span className="text-white">{book.editorial.nombre_editorial}</span></p>
+              )}
+              {book.isbn && (
+                <p className="text-blue-200 text-xs">ISBN: <span className="text-white font-mono">{book.isbn}</span></p>
+              )}
+            </div>
             
             <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
               <div className="bg-white/5 rounded-lg p-3 text-center">
@@ -225,6 +252,20 @@ export default function UpdateCopiesModal({ isOpen, onClose, onCopiesUpdated, bo
                       {parseInt(numCopias) - parseInt(book.num_copias)}
                     </span>
                   </div>
+                  {parseInt(numCopias) > parseInt(book.num_copias) && (
+                    <div className="pt-2 border-t border-white/20">
+                      <p className="text-green-400 text-xs">
+                        Se agregarán {parseInt(numCopias) - parseInt(book.num_copias)} copias nuevas
+                      </p>
+                    </div>
+                  )}
+                  {parseInt(numCopias) < parseInt(book.num_copias) && (
+                    <div className="pt-2 border-t border-white/20">
+                      <p className="text-orange-400 text-xs">
+                        Se eliminarán {parseInt(book.num_copias) - parseInt(numCopias)} copias
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

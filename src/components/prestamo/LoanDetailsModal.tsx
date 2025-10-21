@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from 'react';
 
+interface Autor {
+  AUTOR_ID: string;
+  NOMBRE_AUTOR: string;
+  NACIONALIDAD: string;
+}
+
 interface LoanDetails {
   USUARIO_ID: string;
   PRESTAMO_ID: string;
@@ -11,7 +17,7 @@ interface LoanDetails {
   ESTADO: string;
   USUARIO_NOMBRE: string;
   LIBRO_TITULO: string;
-  AUTOR?: string;
+  AUTOR: Autor | string;
 }
 
 interface LoanDetailsModalProps {
@@ -24,6 +30,8 @@ interface LoanDetailsModalProps {
 export default function LoanDetailsModal({ isOpen, onClose, loan, isMyLoan = false }: LoanDetailsModalProps) {
   const [renovando, setRenovando] = useState(false);
   const [mensajeRenovacion, setMensajeRenovacion] = useState('');
+
+
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -54,6 +62,25 @@ export default function LoanDetailsModal({ isOpen, onClose, loan, isMyLoan = fal
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+      // Función para obtener el nombre del autor de manera segura
+  const getNombreAutor = () => {
+    if (!loan) return '';
+    
+    if (typeof loan.AUTOR === 'string') {
+      return loan.AUTOR;
+    } else {
+      return loan.AUTOR.NOMBRE_AUTOR;
+    }
+  };
+
+    // Función para obtener la nacionalidad del autor de manera segura
+  const getNacionalidadAutor = () => {
+    if (!loan || typeof loan.AUTOR === 'string') {
+      return '';
+    }
+    return loan.AUTOR.NACIONALIDAD;
   };
 
   const getStatusColor = (estado: string) => {
@@ -241,7 +268,7 @@ export default function LoanDetailsModal({ isOpen, onClose, loan, isMyLoan = fal
               {loan.AUTOR && (
                 <div className="flex justify-between items-center">
                   <span className="text-blue-300 font-medium">Autor:</span>
-                  <span className="text-white">{loan.AUTOR}</span>
+                  <span className="text-white"> {getNombreAutor()} - {getNacionalidadAutor() && `(${getNacionalidadAutor()})`}</span>
                 </div>
               )}
               <div className="flex justify-between items-center">

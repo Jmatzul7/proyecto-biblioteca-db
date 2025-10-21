@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import runQuery from '../../../lib/db/oracle';
 
+    interface Prestamo {
+      PRESTAMO_ID: number;
+      USUARIO_NOMBRE: string;
+      USUARIO_ID: number;
+      LIBRO_TITULO: string;
+      FECHA_PRESTAMO: string;
+      FECHA_DEVOLUCION: string;
+      ESTADO: string;
+      LIBRO_ID: number;
+    }
+    
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -30,16 +41,7 @@ export async function GET(request: NextRequest) {
 
     query += ` ORDER BY p.fecha_prestamo DESC`;
 
-    interface Prestamo {
-      PRESTAMO_ID: number;
-      USUARIO_NOMBRE: string;
-      USUARIO_ID: number;
-      LIBRO_TITULO: string;
-      FECHA_PRESTAMO: string;
-      FECHA_DEVOLUCION: string;
-      ESTADO: string;
-      LIBRO_ID: number;
-    }
+
     const prestamosResult = await runQuery(query, params);
     const prestamosTipados: Prestamo[] = Array.isArray(prestamosResult)
       ? prestamosResult.map((p: unknown) => p as Prestamo)
@@ -104,7 +106,7 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       );
     }
-console.log('🔍 Verificando disponibilidad.69..');
+console.log('🔍 Verificando disponibilidad...');
     interface Disponibilidad {
       COPIAS_TOTALES: number;
       PRESTAMOS_ACTIVOS: number;
@@ -122,7 +124,7 @@ console.log('🔍 Verificando disponibilidad.69..');
       );
     }
 
-    // 🆔 Obtener próximo ID de préstamo
+    // Obtener próximo ID de préstamo
     const idResult = await runQuery(`SELECT NVL(MAX(PRESTAMO_ID), 0) + 1 AS NEXT_ID FROM PRESTAMOS`);
 
 

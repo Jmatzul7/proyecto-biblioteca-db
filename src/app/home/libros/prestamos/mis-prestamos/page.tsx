@@ -10,17 +10,24 @@ import UserProfile from '@/components/prestamo/misprestamos/UserProfile';
 import LoanDetailsModal from '@/components/prestamo/LoanDetailsModal';
 import Link from 'next/link';
 
+interface Autor {
+  AUTOR_ID: string;
+  NOMBRE_AUTOR: string;
+  NACIONALIDAD: string;
+}
+
 interface MyLoan {
   USUARIO_ID: string;
-  USUARIO_NOMBRE: string;
+  NOMBRE_USUARIO: string;
   LIBRO_ID: string;
   LIBRO_TITULO: string;
-  AUTOR: string;
+  AUTOR: Autor | string; // ← Cambiar aquí también
   PRESTAMO_ID: string;
   FECHA_PRESTAMO: string;
   FECHA_DEVOLUCION: string | null;
   ESTADO: string;
 }
+
 
 export default function MyLoansPage() {
   const { user } = useAuth(); // Obtener información del usuario loggeado
@@ -124,11 +131,18 @@ export default function MyLoansPage() {
   };
 
   // Preparar datos para el modal
-  const loanDetails = selectedLoan ? {
-    ...selectedLoan,
-    LIBRO_TITULO: selectedLoan.LIBRO_TITULO,
-    USUARIO_NOMBRE: selectedLoan.USUARIO_NOMBRE
-  } : null;
+
+const loanDetails = selectedLoan ? {
+  USUARIO_ID: selectedLoan.USUARIO_ID,
+  PRESTAMO_ID: selectedLoan.PRESTAMO_ID,
+  LIBRO_ID: selectedLoan.LIBRO_ID,
+  FECHA_PRESTAMO: selectedLoan.FECHA_PRESTAMO,
+  FECHA_DEVOLUCION: selectedLoan.FECHA_DEVOLUCION,
+  ESTADO: selectedLoan.ESTADO,
+  USUARIO_NOMBRE: selectedLoan.NOMBRE_USUARIO,
+  LIBRO_TITULO: selectedLoan.LIBRO_TITULO,
+  AUTOR: selectedLoan.AUTOR // ← Pasar el objeto/autor completo, no solo el nombre
+} : null;
 
   return (
     <ProtectedRoute>

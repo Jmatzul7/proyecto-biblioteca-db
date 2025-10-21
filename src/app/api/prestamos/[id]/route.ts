@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     try {
       await runQuery(
         `INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle)
-         VALUES (AUDITORIA_SEQ.NEXTVAL, 1, 'NUEVO_LIBRO', 'Libro creado: ${titulo}')`
+         VALUES ((SELECT NVL(MAX(evento_id), 0) + 1 FROM AUDITORIA), 1, 'NUEVO_LIBRO', 'Libro creado: ${titulo}')`
       );
     } catch (auditError) {
       console.log('⚠️ No se pudo registrar auditoría');

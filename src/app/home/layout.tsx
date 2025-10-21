@@ -1,4 +1,5 @@
 import Layout from '@/components/layout/Layout';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: 'Libros | Mi Biblioteca',
@@ -11,5 +12,6 @@ export default function HomeLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <Layout>{children}</Layout>;
+  return <Layout>{children}, <Analytics /> </Layout>; 
+
 }

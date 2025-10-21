@@ -117,7 +117,7 @@ export async function PUT(request: NextRequest) {
     try {
       const auditoriaSql = `
         INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle)
-        VALUES (AUDITORIA_SEQ.NEXTVAL, 1, 'DEVOLUCION_LIBRO', 
+        VALUES ((SELECT NVL(MAX(evento_id), 0) + 1 FROM AUDITORIA), 1, 'DEVOLUCION_LIBRO', 
                'Préstamo devuelto ID: ${prestamoId} - Libro: ${prestamo.TITULO} - Libro ID: ${libroId}')
       `;
       await runQuery(auditoriaSql);

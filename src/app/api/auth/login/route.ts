@@ -115,8 +115,8 @@ export async function POST(request: NextRequest) {
     // Registrar auditoría de login exitoso sin usar secuencia
     try {
       await runQuery(
-        `INSERT INTO AUDITORIA (usuario_id, accion, detalle) 
-         VALUES (:1, 'LOGIN', 'Inicio de sesión exitoso desde la web')`,
+        `INSERT INTO AUDITORIA (evento_id, usuario_id, accion, detalle) 
+         VALUES ((SELECT NVL(MAX(evento_id), 0) + 1 FROM AUDITORIA), :1, 'LOGIN', 'Inicio de sesión exitoso desde la web')`,
         [user.USUARIO_ID]
       );
     } catch (auditError) {

@@ -2,20 +2,35 @@
 
 import { useState } from 'react';
 
+interface Autor {
+  autor_id: string;
+  nombre_autor: string;
+  nacionalidad: string;
+}
+
+interface Editorial {
+  editorial_id: string;
+  nombre_editorial: string;
+}
+
+interface Genero {
+  genero_id: string;
+  nombre_genero: string;
+}
+
 interface Book {
   usuario_id: string;
   libro_id: string;
   titulo: string;
-  autor: string;
+  autor: Autor; // Cambiado de string a objeto Autor
+  editorial: Editorial | null; // Nuevo campo
   anio_publicacion: string;
   num_copias: string;
   fecha_registro: string;
-  genero: {
-    genero_id: string;
-    nombre_genero: string;
-  };
+  genero: Genero;
   copias_disponibles: string;
   url_imagen: string | null;
+  isbn?: string; // Nuevo campo opcional
 }
 
 interface BookCardProps {
@@ -76,21 +91,27 @@ export default function BookCard({ book, onBookLoan, onUpdateCopies, isStaff = f
   // Imagen por defecto basada en el género
   const getDefaultImage = (genero: string) => {
     const images: { [key: string]: string } = {
-      'Ciencia': '🔬',
+      'Ciencia Ficcion': '🚀',
       'Fantasia': '🧙‍♂️',
       'Romance': '💖',
-      'Terror': '👻',
-      'Aventura': '🗺️',
       'Misterio': '🕵️‍♂️',
-      'Historia': '📜',
+      'Thriller': '🔪',
+      'Historica': '🏛️',
       'Biografia': '👤',
-      'Ficción': '🚀',
-      'Clásico': '🏛️',
-      'Poesía': '📝',
-      'Drama': '🎭',
+      'Ciencia': '🔬',
+      'Tecnologia': '💻',
+      'Arte': '🎨',
+      'Filosofia': '🤔',
+      'Psicologia': '🧠',
+      'Negocios': '💼',
+      'Cocina': '👨‍🍳',
+      'Viajes': '✈️',
+      'Poesia': '📝',
+      'Teatro': '🎭',
+      'Mitologia': '⚡',
+      'Autoayuda': '💪',
       'Infantil': '🧸',
-      'Juvenil': '🎒',
-      'Autoayuda': '💪'
+      'Juvenil': '🎒'
     };
     return images[genero] || '📚';
   };
@@ -148,12 +169,28 @@ export default function BookCard({ book, onBookLoan, onUpdateCopies, isStaff = f
           {book.titulo}
         </h3>
         
-        <p className="text-blue-200 mb-3 flex items-center">
+        {/* Información del autor */}
+        <div className="text-blue-200 mb-2 flex items-center">
           <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          <span className="truncate">{book.autor}</span>
-        </p>
+          <div>
+            <span className="font-medium">{book.autor.nombre_autor}</span>
+            {book.autor.nacionalidad && (
+              <span className="text-xs text-blue-300 ml-2">({book.autor.nacionalidad})</span>
+            )}
+          </div>
+        </div>
+
+        {/* Información de editorial */}
+        {book.editorial && (
+          <div className="text-blue-200 mb-3 flex items-center">
+            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span className="truncate">{book.editorial.nombre_editorial}</span>
+          </div>
+        )}
 
         {/* Información de copias */}
         <div className="grid grid-cols-2 gap-4 text-sm mb-4">
@@ -173,17 +210,28 @@ export default function BookCard({ book, onBookLoan, onUpdateCopies, isStaff = f
 
         {/* Información adicional */}
         <div className="flex items-center justify-between text-xs text-blue-300 mb-4">
-          <span className="flex items-center">
-            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            {book.anio_publicacion || 'N/A'}
-          </span>
+          <div className="flex flex-col space-y-1">
+            <span className="flex items-center">
+              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {book.anio_publicacion || 'N/A'}
+            </span>
+            
+            {book.isbn && (
+              <span className="flex items-center" title={`ISBN: ${book.isbn}`}>
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {book.isbn}
+              </span>
+            )}
+          </div>
           
           {book.fecha_registro && (
             <span className="flex items-center" title={`Registrado: ${new Date(book.fecha_registro).toLocaleDateString()}`}>
               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               {new Date(book.fecha_registro).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
             </span>

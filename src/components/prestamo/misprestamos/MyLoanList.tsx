@@ -1,11 +1,17 @@
 import MyLoanCard from './MyLoanCard';
 
+interface Autor {
+  AUTOR_ID: string;
+  NOMBRE_AUTOR: string;
+  NACIONALIDAD: string;
+}
+
 interface MyLoan {
   USUARIO_ID: string;
-  USUARIO_NOMBRE: string;
+  NOMBRE_USUARIO: string;
   LIBRO_ID: string;
   LIBRO_TITULO: string;
-  AUTOR: string;
+  AUTOR: Autor | string; // ← Cambiar a string | Autor para coincidir con MyLoanCard
   PRESTAMO_ID: string;
   FECHA_PRESTAMO: string;
   FECHA_DEVOLUCION: string | null;
@@ -19,7 +25,7 @@ interface MyLoanListProps {
 }
 
 export default function MyLoanList({ loans, loading = false, onShowDetails }: MyLoanListProps) {
-if (loading) {
+  if (loading) {
     return (
       <div className="space-y-4">
         {[...Array(6)].map((_, i) => (
@@ -45,7 +51,7 @@ if (loading) {
         <MyLoanCard 
           key={loan.PRESTAMO_ID} 
           loan={loan}
-          onShowDetails={onShowDetails} // ← Pasar la prop
+          onShowDetails={onShowDetails} 
         />
       ))}
     </div>

@@ -11,6 +11,12 @@ interface Genero {
   nombre_genero: string;
 }
 
+interface Autor {
+  AUTOR_ID: string;
+  NOMBRE_AUTOR: string;
+  NACIONALIDAD: string;
+}
+
 interface AddBookModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,21 +26,24 @@ interface AddBookModalProps {
 export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookModalProps) {
   const [formData, setFormData] = useState({
     titulo: '',
-    autor: '',
+    autor_id: '',
     anio_publicacion: '',
     genero_id: '',
     num_copias: '1',
     crear_copias: 'true',
-    url_imagen: ''
+    url_imagen: '',
+    isbn: '' // Nuevo campo para ISBN
   });
   const [generos, setGeneros] = useState<Genero[]>([]);
+  const [autores, setAutores] = useState<Autor[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Cargar géneros al abrir el modal
+  // Cargar géneros y autores al abrir el modal
   useEffect(() => {
     if (isOpen) {
       fetchGeneros();
+      fetchAutores();
     }
   }, [isOpen]);
   
@@ -54,6 +63,22 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
     }
   };
 
+  const fetchAutores = async () => {
+    try {
+      const response = await fetch('/api/autores');
+      const result = await response.json();
+      
+      if (result.success) {
+        setAutores(result.data);
+      } else {
+        setError('Error al cargar la lista de autores');
+      }
+    } catch (error) {
+      console.error('Error fetching autores:', error);
+      setError('Error al cargar la lista de autores');
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -63,13 +88,27 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
     if (error) setError('');
   };
 
+  // Función para validar formato ISBN
+  const isValidISBN = (isbn: string): boolean => {
+    if (!isbn) return true; // ISBN es opcional
+    
+    // Limpiar ISBN (remover guiones y espacios)
+    const cleanISBN = isbn.replace(/[-\s]/g, '');
+    
+    // Validar ISBN-10 (10 dígitos) o ISBN-13 (13 dígitos)
+    const isbn10Regex = /^(?:\d{9}[\dXx])$/;
+    const isbn13Regex = /^(?:\d{13})$/;
+    
+    return isbn10Regex.test(cleanISBN) || isbn13Regex.test(cleanISBN);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      if (!formData.titulo.trim() || !formData.autor.trim()) {
+      if (!formData.titulo.trim() || !formData.autor_id) {
         setError('Título y autor son obligatorios');
         setLoading(false);
         return;
@@ -77,6 +116,13 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
 
       if (formData.anio_publicacion && (parseInt(formData.anio_publicacion) < 1000 || parseInt(formData.anio_publicacion) > new Date().getFullYear())) {
         setError('El año de publicación debe ser válido');
+        setLoading(false);
+        return;
+      }
+
+      // Validar ISBN si se proporciona
+      if (formData.isbn && !isValidISBN(formData.isbn)) {
+        setError('El formato del ISBN no es válido. Use ISBN-10 (10 dígitos) o ISBN-13 (13 dígitos)');
         setLoading(false);
         return;
       }
@@ -110,12 +156,13 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
   const resetForm = () => {
     setFormData({
       titulo: '',
-      autor: '',
+      autor_id: '',
       anio_publicacion: '',
       genero_id: '',
       num_copias: '1',
       crear_copias: 'true',
-      url_imagen: ''
+      url_imagen: '',
+      isbn: '' // Resetear ISBN también
     });
     setError('');
   };
@@ -130,6 +177,18 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
   const bookIcon = (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+    </svg>
+  );
+
+  const authorIcon = (
+    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  );
+
+  const isbnIcon = (
+    <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
     </svg>
   );
 
@@ -178,17 +237,19 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
             />
 
             {/* Autor */}
-            <Input
-              id="autor"
-              name="autor"
-              type="text"
-              value={formData.autor}
+            <Select
+              id="autor_id"
+              name="autor_id"
+              value={formData.autor_id}
               onChange={handleChange}
-              placeholder="Nombre completo del autor"
+              options={autores.map(autor => ({ 
+                value: autor.AUTOR_ID, 
+                label: `${autor.NOMBRE_AUTOR}${autor.NACIONALIDAD ? ` (${autor.NACIONALIDAD})` : ''}`
+              }))}
+              placeholder="Seleccionar autor"
               required
               label="Autor *"
-              icon={bookIcon}
-              className="md:col-span-2"
+              className="md:col-span-2 text-gray-800"
             />
 
             {/* Año de Publicación */}
@@ -204,6 +265,19 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
               max={new Date().getFullYear()}
             />
 
+            {/* ISBN */}
+            <Input
+              id="isbn"
+              name="isbn"
+              type="text"
+              value={formData.isbn}
+              onChange={handleChange}
+              placeholder="Ej: 978-3-16-148410-0"
+              label="ISBN"
+              icon={isbnIcon}
+             
+            />
+
             {/* Género */}
             <Select
               id="genero_id"
@@ -213,7 +287,7 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
               options={generos.map(g => ({ value: g.genero_id, label: g.nombre_genero }))}
               placeholder="Seleccionar género"
               label="Género"
-              className="text-gray-500"
+              className="text-gray-800"
             />
 
             {/* Número de Copias */}
@@ -229,7 +303,7 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
               max={100}
             />
 
-            <div className="flex items-center space-x-3 bg-white/5 p-4 rounded-xl border border-white/20">
+            <div className="flex items-center space-x-3 bg-white/5 p-4 rounded-xl border border-white/20 md:col-span-2">
               <input
                 id="crear_copias"
                 name="crear_copias"
@@ -258,6 +332,22 @@ export default function AddBookModal({ isOpen, onClose, onBookAdded }: AddBookMo
               className="md:col-span-2"
             />
           </div>
+
+          {/* Información adicional sobre ISBN */}
+          {formData.isbn && (
+            <div className="bg-white/5 border border-white/20 rounded-xl p-4">
+              <h4 className="text-white font-semibold text-sm mb-2">Información del ISBN:</h4>
+              <div className="text-blue-200 text-sm space-y-1">
+                <p><strong>ISBN ingresado:</strong> {formData.isbn}</p>
+                <p><strong>Formato válido:</strong> {isValidISBN(formData.isbn) ? '✅ Sí' : '❌ No'}</p>
+                {isValidISBN(formData.isbn) && (
+                  <p>
+                    <strong>Tipo:</strong> {formData.isbn.replace(/[-\s]/g, '').length === 10 ? 'ISBN-10' : 'ISBN-13'}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Vista previa de imagen */}
           {formData.url_imagen && (

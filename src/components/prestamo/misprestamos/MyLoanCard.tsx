@@ -2,12 +2,18 @@
 import { useState } from 'react';
 import LoanDetailsModal from '../LoanDetailsModal';
 
+interface Autor {
+  AUTOR_ID: string;
+  NOMBRE_AUTOR: string;
+  NACIONALIDAD: string;
+}
+
 interface MyLoan {
   USUARIO_ID: string;
-  USUARIO_NOMBRE: string;
+  NOMBRE_USUARIO: string;
   LIBRO_ID: string;
   LIBRO_TITULO: string;
-  AUTOR: string;
+  AUTOR: Autor | string; // ← Permitir tanto objeto como string
   PRESTAMO_ID: string;
   FECHA_PRESTAMO: string;
   FECHA_DEVOLUCION: string | null;
@@ -22,9 +28,18 @@ interface MyLoanCardProps {
 export default function MyLoanCard({ loan, onShowDetails }: MyLoanCardProps) {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-    const handleShowDetails = () => {
+  const handleShowDetails = () => {
     if (onShowDetails) {
       onShowDetails(loan);
+    }
+  };
+
+  // Función para obtener el nombre del autor de manera segura
+  const getNombreAutor = () => {
+    if (typeof loan.AUTOR === 'string') {
+      return loan.AUTOR;
+    } else {
+      return loan.AUTOR.NOMBRE_AUTOR;
     }
   };
 
@@ -93,7 +108,8 @@ export default function MyLoanCard({ loan, onShowDetails }: MyLoanCardProps) {
           <h3 className="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors mb-2">
             {loan.LIBRO_TITULO}
           </h3>
-          <p className="text-blue-200 mb-1">por {loan.AUTOR}</p>
+          {/* CAMBIO AQUÍ: Usar la función getNombreAutor() */}
+          <p className="text-blue-200 mb-1">por {getNombreAutor()}</p>
           
           <div className="flex flex-wrap gap-4 mt-3 text-sm">
             <div>
@@ -179,7 +195,7 @@ export default function MyLoanCard({ loan, onShowDetails }: MyLoanCardProps) {
         onClose={() => setShowDetailsModal(false)}
         loan={{
           ...loan,
-          USUARIO_NOMBRE: loan.USUARIO_NOMBRE         
+          USUARIO_NOMBRE: loan.NOMBRE_USUARIO         
         }}
         isMyLoan={true} 
       />

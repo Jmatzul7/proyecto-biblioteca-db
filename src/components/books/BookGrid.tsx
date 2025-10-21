@@ -1,19 +1,34 @@
 import BookCard from './BookCard';
 
+interface Autor {
+  autor_id: string;
+  nombre_autor: string;
+  nacionalidad: string;
+}
+
+interface Editorial {
+  editorial_id: string;
+  nombre_editorial: string;
+}
+
+interface Genero {
+  genero_id: string;
+  nombre_genero: string;
+}
+
 interface Book {
   usuario_id: string;
   libro_id: string;
   titulo: string;
-  autor: string;
+  autor: Autor; // Cambiado de string a objeto Autor
+  editorial: Editorial | null; // Nuevo campo
   anio_publicacion: string;
   num_copias: string;
   fecha_registro: string;
-  genero: {
-    genero_id: string;
-    nombre_genero: string;
-  };
+  genero: Genero;
   copias_disponibles: string;
   url_imagen: string | null;
+  isbn?: string; // Nuevo campo opcional
 }
 
 interface BookGridProps {
