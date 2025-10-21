@@ -17,7 +17,7 @@ interface LoanDetails {
   ESTADO: string;
   USUARIO_NOMBRE: string;
   LIBRO_TITULO: string;
-  AUTOR: Autor | string;
+  AUTOR?: Autor | string;
 }
 
 interface LoanDetailsModalProps {
@@ -71,7 +71,7 @@ export default function LoanDetailsModal({ isOpen, onClose, loan, isMyLoan = fal
     if (typeof loan.AUTOR === 'string') {
       return loan.AUTOR;
     } else {
-      return loan.AUTOR.NOMBRE_AUTOR;
+      return loan.AUTOR?.NOMBRE_AUTOR;
     }
   };
 
@@ -80,7 +80,7 @@ export default function LoanDetailsModal({ isOpen, onClose, loan, isMyLoan = fal
     if (!loan || typeof loan.AUTOR === 'string') {
       return '';
     }
-    return loan.AUTOR.NACIONALIDAD;
+    return loan.AUTOR?.NACIONALIDAD;
   };
 
   const getStatusColor = (estado: string) => {
